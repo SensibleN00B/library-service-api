@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "django_filters",
     "debug_toolbar",
     "library",
+    "payment",
     "user",
     "django_celery_beat",
 ]
