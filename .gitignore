@@ -208,4 +208,5 @@ __marimo__/
 
 # Staticfiles & media
 /static/
+/staticfiles/
 /media/
