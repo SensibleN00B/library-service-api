@@ -10,6 +10,7 @@ from library.serializers import (
     BookSerializer,
     BorrowingCreateSerializer,
     BorrowingSerializer,
+    BorrowingReturnSerializer,
 )
 
 
@@ -55,9 +56,11 @@ class BorrowingViewSet(
     def get_serializer_class(self):
         if self.action == "create":
             return BorrowingCreateSerializer
+        elif self.action == "return_book_action":
+            return BorrowingReturnSerializer
         return BorrowingSerializer
 
-    @action(methods=["POST"], url_path="return", detail=True)
+    @action(methods=["POST", "GET"], url_path="return", detail=True)
     def return_book_action(self, request, pk=None):
         borrowing = self.get_object()
 
