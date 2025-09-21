@@ -1,5 +1,5 @@
 class BaseViewSetMethodMixin:
-    """  Mixin for mapping actions with serializers and permissions"""
+    """Mixin for mapping actions with serializers and permissions"""
 
     def get_serializer_class(self):
         if (
@@ -9,3 +9,15 @@ class BaseViewSetMethodMixin:
             return self.action_serializers[self.action]
 
         return super().get_serializer_class()
+
+    def get_permissions(self):
+        if (
+            hasattr(self, "action_permissions")
+            and self.action in self.action_permissions
+        ):
+            return [
+                permission()
+                for permission in self.action_permissions[self.action]
+            ]
+
+        return super().get_permissions()
