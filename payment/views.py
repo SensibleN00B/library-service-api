@@ -18,11 +18,11 @@ class PaymentViewSet(
             return PaymentDetailSerializer
         return PaymentSerializer
 
-    # def get_queryset(self):
-    #     qs = self.queryset
-    #     if self.request.user.is_staff:
-    #         return qs
-    #     return qs.filter(borrowing__user=self.request.user)
+    def get_queryset(self):
+        qs = self.queryset
+        if self.request.user.is_staff:
+            return qs
+        return qs.filter(borrowing__user=self.request.user)
 
 
     # session = stripe.checkout.Session.create(
