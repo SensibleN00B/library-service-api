@@ -8,9 +8,9 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = Payment
         fields = (
             "id",
-            "type",
             "status",
             "borrowing",
+            "fine_days",
             "money_to_pay",
             "session_url",
             "session_id"
@@ -22,10 +22,9 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
         model = Payment
         fields = (
             "id",
-            "type",
             "status",
             "borrowing",
-            "money_to_pay",
+            "fine_days",
             "session_url",
             "session_id"
     )
