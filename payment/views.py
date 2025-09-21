@@ -1,8 +1,19 @@
+import stripe
+from django.conf import settings
+from django.db import transaction
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from rest_framework import viewsets, mixins
 from rest_framework.permissions import IsAuthenticated
+from stripe.checkout import Session
 
 from payment.models import Payment
 from payment.serializers import PaymentSerializer, PaymentDetailSerializer
+
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 
 
 class PaymentViewSet(
@@ -25,21 +36,36 @@ class PaymentViewSet(
         return qs.filter(borrowing__user=self.request.user)
 
 
-    # session = stripe.checkout.Session.create(
-    #     payment_method_types=["card"],
-    #     mode="payment",
-    #     line_items=[
-    #         {
-    #             "price_data": {
-    #                 "currency": "usd",
-    #                 "product_data": {
-    #                     "name": "Test Book Payment",
-    #                 },
-    #                 "unit_amount": 2000,
-    #             },
-    #             "quantity": 1,
-    #         }
-    #     ],
-    #     success_url="https://example.com/success",
-    #     cancel_url="https://example.com/cancel",
-    # )
+def handle_checkout_session(session: Session) -> None:
+    session_id = session["id"]
+    payment = Payment.objects.get(session_id=session_id)
+    payment.status=Payment.Status.paid
+    payment.save()
+
+
+@require_POST
+@csrf_exempt
+def stripe_webhook_view(request):
+    payload = request.body
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return HttpResponse(status=400)
+
+    if event["type"] == "checkout.session.completed":
+        session_id = event["data"]["object"]["id"]
+        payment = Payment.objects.get(session_id=session_id)
+        payment.status = Payment.Status.paid
+        payment.save()
+
+
+    return HttpResponse(status=200)

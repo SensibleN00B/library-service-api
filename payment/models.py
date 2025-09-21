@@ -1,6 +1,6 @@
 import stripe
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 from django.db.models import CASCADE
 
 from library.models import Borrowing
@@ -24,4 +24,3 @@ class Payment(models.Model):
     fine_days = models.PositiveIntegerField()
     session_url = models.URLField(null=True, blank=True)
     session_id = models.CharField(null=True, blank=True)
-
