@@ -15,9 +15,5 @@ class BaseViewSetMethodMixin:
             hasattr(self, "action_permissions")
             and self.action in self.action_permissions
         ):
-            return [
-                permission()
-                for permission in self.action_permissions[self.action]
-            ]
-
+            return [perm() for perm in self.action_permissions[self.action]]
         return super().get_permissions()
