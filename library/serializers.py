@@ -77,5 +77,7 @@ class BorrowingReturnSerializer(serializers.Serializer):
 
     def validate_confirm_return(self, value):
         if not value:
-            raise serializers.ValidationError("You must confirm to return the book")
+            raise serializers.ValidationError(
+                "You must confirm to return the book"
+            )
         return value

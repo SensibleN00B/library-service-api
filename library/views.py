@@ -9,8 +9,8 @@ from library.serializers import (
     BookListSerializer,
     BookSerializer,
     BorrowingCreateSerializer,
-    BorrowingSerializer,
     BorrowingReturnSerializer,
+    BorrowingSerializer,
 )
 
 
