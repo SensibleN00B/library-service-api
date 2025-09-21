@@ -10,9 +10,39 @@ jobs:
   tests:
     environment: dev
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U ${{ vars.POSTGRES_USER }} -d ${{ vars.POSTGRES_DB }}"
+          --health-interval=5s --health-timeout=3s --health-retries=15
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s --health-timeout=3s --health-retries=10
+
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-    timeout-minutes: 10
+      POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+      POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      REDIS_URL: redis://localhost:6379/0
+      DJANGO_SETTINGS_MODULE: config.settings
 
     steps:
       - name: Checkout repo
@@ -46,6 +76,15 @@ jobs:
           isort --profile black --check-only --diff .
           black --check .
           flake8 .
+
+      - name: Wait for DB to be ready
+        run: python manage.py wait_for_db
+
+      - name: Run migrations
+        run: python manage.py migrate --noinput
+
+      - name: Collect static (optional)
+        run: python manage.py collectstatic --noinput
 
       - name: Run tests
         timeout-minutes: 5
