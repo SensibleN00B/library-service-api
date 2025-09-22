@@ -38,39 +38,40 @@ class PaymentViewSet(
             qs.filter(borrowing__user=self.request.user)
         return qs
 
+    @action(detail=True, methods=["GET"], url_path="success")
+    def success(self, request, pk=None):
+        payment = self.get_object()
 
-    @action(methods=["POST"], url_path="return", detail=True)
-    def create_payment(self, request, pk=None):
-        borrowing = self.get_object()
-        days_of_use = (borrowing.expected_return_date - borrowing.borrow_date).days
-        money_to_pay = borrowing.book.daily_fee * days_of_use
+        if request.user != payment.borrowing.user:
+            return Response({"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
 
-        payment = Payment.objects.create(
-            borrowing=borrowing,
-            money_to_pay=money_to_pay,
-        )
+        if payment.type == Payment.Type.fine:
+            return Response({
+                "detail": "Fine successfully paid",
+                "status": payment.status,
+                "expected_return_date": payment.borrowing.expected_return_date,
+            }, status=status.HTTP_200_OK)
 
-        data = {
-            "book_title": f"{borrowing.book.title} by {borrowing.book.author}",
-            "money_to_pay": money_to_pay,
-        }
+        return Response({
+            "detail": "Payment successfully paid",
+            "book": payment.borrowing.book.title,
+            "author": payment.borrowing.book.author,
+            "status": payment.status,
+            "expected_return_date": payment.borrowing.expected_return_date,
+        }, status=status.HTTP_200_OK)
 
-        stripe_payment = StripePayment()
-        session = stripe_payment.create_session(request, borrowing, data)
+    @action(detail=True, methods=["GET"], url_path="cancel")
+    def cancel(self, request, pk=None):
+        payment = self.get_object()
 
-        payment.session_id = session.id
-        payment.session_url = session.url
-        payment.save()
+        if request.user != payment.borrowing.user:
+            return Response({"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
 
-        return Response({"status": "book_returned"}, status=status.HTTP_200_OK)
-
-
-def handle_checkout_session(session: Session) -> None:
-    session_id = session["id"]
-    payment = Payment.objects.get(session_id=session_id)
-    payment.status=Payment.Status.paid
-    payment.save()
-
+        return Response({
+            "detail": "The payment has been canceled or not completed. You can try again within 24 hours.",
+            "session_url": payment.session_url,
+            "status": payment.status
+        })
 
 @require_POST
 @csrf_exempt
@@ -97,40 +98,3 @@ def stripe_webhook_view(request):
         payment.save()
 
     return HttpResponse(status=200)
-
-
-@api_view(["GET"])
-def success_view(request, payment_id: int):
-    payment = get_object_or_404(Payment, id=payment_id)
-
-    if request.user != payment.borrowing.user:
-        return Response({"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
-
-    if payment.type == Payment.Type.fine:
-        return Response({
-            "detail": "Fine successfully paid",
-            "status": payment.status,
-            "expected_return_date": payment.borrowing.expected_return_date,
-        }, status=status.HTTP_200_OK)
-
-    return Response({
-        "detail": "Payment successfully paid",
-        "book": payment.borrowing.book.title,
-        "author": payment.borrowing.book.author,
-        "status": payment.status,
-        "expected_return_date": payment.borrowing.expected_return_date,
-    }, status=status.HTTP_200_OK)
-
-
-@api_view(["GET"])
-def cancel_view(request, payment_id: int):
-    payment = get_object_or_404(Payment, id=payment_id)
-
-    if request.user != payment.borrowing.user:
-        return Response({"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
-
-    return Response({
-        "detail": "The payment has been canceled or not completed. You can try again within 24 hours.",
-        "session_url": payment.session_url,
-        "status": payment.status
-    })
