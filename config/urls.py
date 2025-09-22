@@ -27,6 +27,6 @@ urlpatterns = [
         include("borrowings.urls", namespace="borrowings"),
     ),
     path("api/library/", include("library.urls", namespace="library")),
-    path("api/stripe/", include("payment.urls", namespace="stripe")),
+    path("api/payment/", include("payment.urls", namespace="payment")),
     path("__debug__/", include("debug_toolbar.urls")),
 ]
