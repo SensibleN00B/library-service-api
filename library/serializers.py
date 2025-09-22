@@ -11,6 +11,16 @@ class BookSerializer(serializers.ModelSerializer):
         model = Book
         fields = ("id", "title", "author", "cover", "inventory", "daily_fee")
 
+    def validate_inventory(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Inventory cannot be negative.")
+        return value
+
+    def validate_daily_fee(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Daily fee cannot be negative.")
+        return value
+
 
 class BookListSerializer(serializers.ModelSerializer):
 
