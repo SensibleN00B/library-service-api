@@ -44,10 +44,10 @@ class StripePayment(PaymentService):
                     }
                 ],
                 success_url=request.build_absolute_uri(
-                    reverse("payment:success", args=[data["payment"]])
+                    reverse("payment:payment-success", args=[data["payment"]])
                 ),
                 cancel_url = request.build_absolute_uri(
-                    reverse("payment:cancel", args=[data["payment"]])
+                    reverse("payment:payment-cancel", args=[data["payment"]])
                 )
             )
             return session
