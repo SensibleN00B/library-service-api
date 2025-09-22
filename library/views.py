@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
 from library.models import Book, Borrowing
@@ -12,15 +12,24 @@ from library.serializers import (
     BorrowingReturnSerializer,
     BorrowingSerializer,
 )
+from utils.mixins import BaseViewSetMethodMixin
 
 
-class BookViewSet(viewsets.ModelViewSet):
+class BookViewSet(BaseViewSetMethodMixin, viewsets.ModelViewSet):
     queryset = Book.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = BookSerializer
 
-    def get_serializer_class(self):
-        if self.action == "list":
-            return BookListSerializer
-        return BookSerializer
+    action_serializers = {
+        "list": BookListSerializer,
+    }
+
+    action_permissions = {
+        "create": [IsAdminUser],
+        "update": [IsAdminUser],
+        "partial_update": [IsAdminUser],
+        "destroy": [IsAdminUser],
+    }
 
 
 class BorrowingViewSet(
