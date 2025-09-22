@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -13,6 +14,8 @@ from library.serializers import (
     BorrowingSerializer,
 )
 from utils.mixins import BaseViewSetMethodMixin
+from payment.models import Payment
+from payment.payment_service.stripe_service import StripePayment
 
 
 class BookViewSet(BaseViewSetMethodMixin, viewsets.ModelViewSet):
@@ -68,6 +71,30 @@ class BorrowingViewSet(
         elif self.action == "return_book_action":
             return BorrowingReturnSerializer
         return BorrowingSerializer
+
+    def perform_create(self, serializer):
+        borrowing = serializer.save()
+
+        book_title = f"{borrowing.book.title} by {borrowing.book.author}"
+        days_of_use = (borrowing.expected_return_date - borrowing.borrow_date).days
+        money_to_pay = borrowing.book.daily_fee * days_of_use
+
+        with transaction.atomic():
+            payment = Payment.objects.create(
+                borrowing=borrowing,
+                money_to_pay=money_to_pay,
+            )
+
+            stripe_payment = StripePayment()
+            session = stripe_payment.create_session(self.request, {
+                "book_title": book_title,
+                "money_to_pay": money_to_pay,
+                "payment": payment.id,
+            })
+
+            payment.session_id = session.id
+            payment.session_url = session.url
+            payment.save()
 
     @action(methods=["POST"], url_path="return", detail=True)
     def return_book_action(self, request, pk=None):
