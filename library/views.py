@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from rest_framework import mixins, status, viewsets
@@ -47,7 +50,7 @@ class BorrowingViewSet(
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Borrowing.objects.all()
+        queryset = self.queryset
 
         if not user.is_staff:
             queryset = queryset.filter(user=user)
@@ -74,37 +77,52 @@ class BorrowingViewSet(
 
     def perform_create(self, serializer):
         borrowing = serializer.save()
-
-        book_title = f"{borrowing.book.title} by {borrowing.book.author}"
         days_of_use = (borrowing.expected_return_date - borrowing.borrow_date).days
         money_to_pay = borrowing.book.daily_fee * days_of_use
 
+        stripe_payment = StripePayment()
+
         with transaction.atomic():
-            payment = Payment.objects.create(
+            stripe_payment.create_payment(
+                request=self.request,
                 borrowing=borrowing,
                 money_to_pay=money_to_pay,
+                payment_type=Payment.Type.payment,
             )
-
-            stripe_payment = StripePayment()
-            session = stripe_payment.create_session(self.request, {
-                "book_title": book_title,
-                "money_to_pay": money_to_pay,
-                "payment": payment.id,
-            })
-
-            payment.session_id = session.id
-            payment.session_url = session.url
-            payment.save()
 
     @action(methods=["POST"], url_path="return", detail=True)
     def return_book_action(self, request, pk=None):
         borrowing = self.get_object()
 
         try:
-            borrowing.return_book()
+            overdue = borrowing.return_book()
         except ValidationError as error:
             return Response(
                 {"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST
             )
+
+        if overdue > 0:
+            stripe_payment = StripePayment()
+            money_to_pay = overdue * borrowing.book.daily_fee * Decimal(str(settings.FINE_MULTIPLIER))
+
+            with transaction.atomic():
+                payment = stripe_payment.create_payment(
+                    request=self.request,
+                    borrowing=borrowing,
+                    money_to_pay=money_to_pay,
+                    payment_type=Payment.Type.fine,
+                )
+
+                return Response(
+                    {
+                        "detail": "Book overdue, fine payment required",
+                        "type": payment.type,
+                        "status": payment.status,
+                        "days_of_overdue": overdue,
+                        "money_to_pay": payment.money_to_pay,
+                        "session_url": payment.session_url,
+                    },
+                    status=status.HTTP_200_OK
+                )
 
         return Response({"status": "book_returned"}, status=status.HTTP_200_OK)

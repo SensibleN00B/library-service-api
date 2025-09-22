@@ -3,7 +3,7 @@ from rest_framework import routers
 
 from payment.views import PaymentViewSet, stripe_webhook_view, cancel_view, success_view
 
-app_name = "stripe"
+app_name = "payment"
 
 router = routers.DefaultRouter()
 router.register("payments", PaymentViewSet)

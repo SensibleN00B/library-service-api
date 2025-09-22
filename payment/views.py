@@ -106,6 +106,13 @@ def success_view(request, payment_id: int):
     if request.user != payment.borrowing.user:
         return Response({"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
 
+    if payment.type == Payment.Type.fine:
+        return Response({
+            "detail": "Fine successfully paid",
+            "status": payment.status,
+            "expected_return_date": payment.borrowing.expected_return_date,
+        }, status=status.HTTP_200_OK)
+
     return Response({
         "detail": "Payment successfully paid",
         "book": payment.borrowing.book.title,

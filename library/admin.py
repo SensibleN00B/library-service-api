@@ -4,10 +4,11 @@ from library.models import Borrowing, Book
 
 
 @admin.register(Borrowing)
-class PaymentAdmin(admin.ModelAdmin):
-    pass
+class BorrowingAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        return Borrowing.objects.select_related("user", "book")
 
 
 @admin.register(Book)
-class PaymentAdmin(admin.ModelAdmin):
+class BookAdmin(admin.ModelAdmin):
     pass
