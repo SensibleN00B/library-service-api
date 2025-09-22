@@ -2,6 +2,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from library.models import Book, Borrowing
+from payment.serializers import PaymentBorrowingSerializer
 from user.serializers import UserSerializer
 
 
@@ -34,6 +35,7 @@ class BookListSerializer(serializers.ModelSerializer):
 class BorrowingSerializer(serializers.ModelSerializer):
     book = BookSerializer(read_only=True)
     user = UserSerializer(read_only=True)
+    payments = PaymentBorrowingSerializer(read_only=True, many=True)
 
     class Meta:
         model = Borrowing
@@ -44,13 +46,15 @@ class BorrowingSerializer(serializers.ModelSerializer):
             "actual_return_date",
             "book",
             "user",
+            "payments"
         )
 
 
 class BorrowingCreateSerializer(serializers.ModelSerializer):
+    payments = PaymentBorrowingSerializer(read_only=True, many=True)
     class Meta:
         model = Borrowing
-        fields = ("borrow_date", "expected_return_date", "book")
+        fields = ("borrow_date", "expected_return_date", "book", "payments")
         extra_kwargs = {"borrow_date": {"required": False}}
 
     def create(self, validated_data):
