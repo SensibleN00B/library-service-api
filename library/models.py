@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
-from django.utils.timezone import now
+from django.utils import timezone
 
 
 class Book(models.Model):
@@ -52,7 +52,8 @@ class Borrowing(models.Model):
 
 
     def return_book(self) -> int:
-        return_date = now().date()
+        return_date = timezone.localtime(timezone.now()).date()
+        # return_date = timezone.now().date()
 
         self.clean_actual_return_date(return_date)
         self.actual_return_date = return_date

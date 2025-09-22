@@ -96,9 +96,7 @@ class BorrowingTest(APITestCase):
 
     def test_return_book_success(self):
         self.client.force_authenticate(self.user)
-        url = reverse(
-            "library:borrowing-return-book-action", args=[self.borrowing.id]
-        )
+        url = reverse("library:borrowing-return-book-action", args=[self.borrowing.id])
 
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
