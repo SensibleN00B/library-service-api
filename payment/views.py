@@ -3,13 +3,15 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from stripe.checkout import Session
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 
 from payment.models import Payment
+from payment.payment_service.stripe_service import StripePayment
 from payment.serializers import PaymentListSerializer, PaymentDetailSerializer
 
 
@@ -35,6 +37,33 @@ class PaymentViewSet(
         if not self.request.user.is_staff:
             qs.filter(borrowing__user=self.request.user)
         return qs
+
+
+    @action(methods=["POST"], url_path="return", detail=True)
+    def create_payment(self, request, pk=None):
+        borrowing = self.get_object()
+        days_of_use = (borrowing.expected_return_date - borrowing.borrow_date).days
+        money_to_pay = borrowing.book.daily_fee * days_of_use
+
+        payment = Payment.objects.create(
+            borrowing=borrowing,
+            money_to_pay=money_to_pay,
+        )
+
+        data = {
+            "book_title": f"{borrowing.book.title} by {borrowing.book.author}",
+            "money_to_pay": money_to_pay,
+        }
+
+        stripe_payment = StripePayment()
+        session = stripe_payment.create_session(request, borrowing, data)
+
+        payment.session_id = session.id
+        payment.session_url = session.url
+        payment.save()
+
+        return Response({"status": "book_returned"}, status=status.HTTP_200_OK)
+
 
 def handle_checkout_session(session: Session) -> None:
     session_id = session["id"]
@@ -71,11 +100,27 @@ def stripe_webhook_view(request):
 
 
 @api_view(["GET"])
+def success_view(request, payment_id: int):
+    payment = get_object_or_404(Payment, id=payment_id)
+
+    if request.user != payment.borrowing.user:
+        return Response({"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
+
+    return Response({
+        "detail": "Payment successfully paid",
+        "book": payment.borrowing.book.title,
+        "author": payment.borrowing.book.author,
+        "status": payment.status,
+        "expected_return_date": payment.borrowing.expected_return_date,
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
 def cancel_view(request, payment_id: int):
-    try:
-        payment = Payment.objects.get(id=payment_id)
-    except Payment.DoesNotExist:
-        return Response({"detail": "Payment not found"}, status=404)
+    payment = get_object_or_404(Payment, id=payment_id)
+
+    if request.user != payment.borrowing.user:
+        return Response({"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
 
     return Response({
         "detail": "The payment has been canceled or not completed. You can try again within 24 hours.",
