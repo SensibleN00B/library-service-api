@@ -1,3 +1,13 @@
 from django.contrib import admin
 
-# Register your models here.
+from library.models import Borrowing, Book
+
+
+@admin.register(Borrowing)
+class PaymentAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Book)
+class PaymentAdmin(admin.ModelAdmin):
+    pass

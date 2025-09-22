@@ -1,15 +1,16 @@
 import stripe
 from django.conf import settings
-from django.db import transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from rest_framework import viewsets, mixins
 from rest_framework.permissions import IsAuthenticated
 from stripe.checkout import Session
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from payment.models import Payment
-from payment.serializers import PaymentSerializer, PaymentDetailSerializer
+from payment.serializers import PaymentListSerializer, PaymentDetailSerializer
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -27,14 +28,13 @@ class PaymentViewSet(
     def get_serializer_class(self):
         if self.action == "retrieve":
             return PaymentDetailSerializer
-        return PaymentSerializer
+        return PaymentListSerializer
 
     def get_queryset(self):
         qs = self.queryset
-        if self.request.user.is_staff:
-            return qs
-        return qs.filter(borrowing__user=self.request.user)
-
+        if not self.request.user.is_staff:
+            qs.filter(borrowing__user=self.request.user)
+        return qs
 
 def handle_checkout_session(session: Session) -> None:
     session_id = session["id"]
@@ -67,5 +67,18 @@ def stripe_webhook_view(request):
         payment.status = Payment.Status.paid
         payment.save()
 
-
     return HttpResponse(status=200)
+
+
+@api_view(["GET"])
+def cancel_view(request, payment_id: int):
+    try:
+        payment = Payment.objects.get(id=payment_id)
+    except Payment.DoesNotExist:
+        return Response({"detail": "Payment not found"}, status=404)
+
+    return Response({
+        "detail": "The payment has been canceled or not completed. You can try again within 24 hours.",
+        "session_url": payment.session_url,
+        "status": payment.status
+    })

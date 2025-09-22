@@ -1,6 +1,7 @@
 import stripe
 from django.conf import settings
 from django.db import transaction
+from django.urls import reverse
 
 from payment.models import Payment
 
@@ -11,16 +12,12 @@ def create_payment(borrowing) -> Payment:
 
     days_of_use = (borrowing.expected_return_date - borrowing.borrow_date).days
 
-    fine_days = (borrowing.actual_return_date - borrowing.expected_return_date).days
-    fine_days = max(fine_days, 0)
-
-    money_to_pay = borrowing.book.daily_fee * (days_of_use + fine_days)
+    money_to_pay = borrowing.book.daily_fee * days_of_use
 
     with transaction.atomic():
         payment = Payment.objects.create(
             borrowing=borrowing,
             money_to_pay=money_to_pay,
-            fine_days=fine_days,
         )
         session = stripe.checkout.Session.create(
                         payment_method_types=["card"],
@@ -37,15 +34,11 @@ def create_payment(borrowing) -> Payment:
                                 "quantity": 1,
                             }
                         ],
-                        success_url=f"http://127.0.0.1:8000/api/stripe/payments/{payment.id}/",
-                        cancel_url="http://127.0.0.1:8000",
+                        success_url=f"http://127.0.0.1:8000/api/library/borrowings/{borrowing.id}/",
+                        cancel_url=f"http://127.0.0.1:8000/api/stripe/{payment.id}/cancel/"
                     )
         payment.session_id = session.id
         payment.session_url = session.url
         payment.save()
 
     return payment
-
-
-
-
