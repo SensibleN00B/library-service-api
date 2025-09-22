@@ -60,7 +60,7 @@ class BorrowingViewSet(
             return BorrowingReturnSerializer
         return BorrowingSerializer
 
-    @action(methods=["POST", "GET"], url_path="return", detail=True)
+    @action(methods=["POST"], url_path="return", detail=True)
     def return_book_action(self, request, pk=None):
         borrowing = self.get_object()
 

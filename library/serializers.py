@@ -73,11 +73,4 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
 
 
 class BorrowingReturnSerializer(serializers.Serializer):
-    confirm_return = serializers.BooleanField(required=True)
-
-    def validate_confirm_return(self, value):
-        if not value:
-            raise serializers.ValidationError(
-                "You must confirm to return the book"
-            )
-        return value
+    pass
