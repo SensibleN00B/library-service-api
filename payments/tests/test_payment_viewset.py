@@ -76,6 +76,6 @@ class PaymentViewSetTests(APITestCase):
         self.assertEqual(response.data["id"], self.payment2.id)
 
     def test_unauthenticated_cannot_access_payments(self):
-        url = reverse("payment:payment-list")
+        url = reverse("payments:payments-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

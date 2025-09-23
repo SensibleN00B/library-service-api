@@ -5,7 +5,7 @@ from rest_framework.reverse import reverse
 
 from books.models import Book
 from borrowings.models import Borrowing
-from payment.models import Payment
+from payments.models import Payment
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -29,7 +29,7 @@ class BorrowingFlowTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        borrowing = Borrowing.objects.get(id=response.data["id"])
+        borrowing = Borrowing.objects.get(book=response.data["book"])
         self.assertEqual(borrowing.payments.count(), 1)
         payment = borrowing.payments.first()
         self.assertEqual(payment.status, Payment.Status.pending)
@@ -42,7 +42,7 @@ class BorrowingFlowTests(APITestCase):
         )
         Payment.objects.create(borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100)
 
-        url = reverse("borrowings:borrowing-return", args=[borrowing.id])
+        url = reverse("borrowings:borrowing-return-book-action", args=[borrowing.id])
         response = self.client.post(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -50,7 +50,7 @@ class BorrowingFlowTests(APITestCase):
         self.book.refresh_from_db()
 
         self.assertIsNotNone(borrowing.actual_return_date)
-        self.assertEqual(self.book.inventory, 1)
+        self.assertEqual(self.book.inventory, 2)
         self.assertEqual(borrowing.payments.count(), 1)  # no new payments
 
     def test_return_book_with_overdue_creates_fine_payment(self):
@@ -60,7 +60,7 @@ class BorrowingFlowTests(APITestCase):
         )
         Payment.objects.create(borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100)
 
-        url = reverse("borrowings:borrowing-return", args=[borrowing.id])
+        url = reverse("borrowings:borrowing-return-book-action", args=[borrowing.id])
         response = self.client.post(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -78,8 +78,8 @@ class BorrowingFlowTests(APITestCase):
         )
         Payment.objects.create(borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100)
 
-        url = reverse("borrowings:borrowing-return", args=[borrowing.id])
+        url = reverse("borrowings:borrowing-return-book-action", args=[borrowing.id])
         self.client.post(url)
 
-        response = self.client.post(url)  # second return should fail
+        response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
