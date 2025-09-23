@@ -95,9 +95,12 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         )
         if pending_payments.exists():
             raise serializers.ValidationError(
-                {"detail": [
-                    "You have pending payments. You cannot borrow new books until they are resolved."
-                ]}
+                {
+                    "detail": [
+                        "You have pending payments."
+                        " You cannot borrow new books until they are resolved."
+                    ]
+                }
             )
 
         return data
