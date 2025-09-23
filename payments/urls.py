@@ -10,5 +10,5 @@ router.register(r"library/payments", PaymentViewSet, basename="payments")
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("webhook/", stripe_webhook_view, name="webhook"),
+    path("library/payments/webhook/", stripe_webhook_view, name="webhook"),
 ]
