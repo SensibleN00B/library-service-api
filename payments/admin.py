@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from payment.models import Payment
+from payments.models import Payment
 
 
 @admin.register(Payment)

@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 
 from books.models import Book
 from borrowings.models import Borrowing
-from payment.models import Payment
+from payments.models import Payment
 
 User = get_user_model()
 
@@ -49,7 +49,7 @@ class PaymentViewSetTests(APITestCase):
 
     def test_non_admin_sees_only_own_payments(self):
         self.client.force_authenticate(user=self.user1)
-        url = reverse("payment:payment-list")
+        url = reverse("payments:payments-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
@@ -57,20 +57,20 @@ class PaymentViewSetTests(APITestCase):
 
     def test_admin_sees_all_payments(self):
         self.client.force_authenticate(user=self.admin)
-        url = reverse("payment:payment-list")
+        url = reverse("payments:payments-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
 
     def test_non_admin_cannot_retrieve_other_payment(self):
         self.client.force_authenticate(user=self.user1)
-        url = reverse("payment:payment-detail", args=[self.payment2.id])
+        url = reverse("payments:payments-detail", args=[self.payment2.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_admin_can_retrieve_any_payment(self):
         self.client.force_authenticate(user=self.admin)
-        url = reverse("payment:payment-detail", args=[self.payment2.id])
+        url = reverse("payments:payments-detail", args=[self.payment2.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["id"], self.payment2.id)

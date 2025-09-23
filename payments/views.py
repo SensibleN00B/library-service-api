@@ -8,8 +8,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from payment.models import Payment
-from payment.serializers import PaymentDetailSerializer, PaymentListSerializer
+from payments.models import Payment
+from payments.serializers import PaymentDetailSerializer, PaymentListSerializer
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
@@ -77,7 +77,7 @@ class PaymentViewSet(
 
         return Response(
             {
-                "detail": "The payment has been canceled or not completed. "
+                "detail": "The payments has been canceled or not completed. "
                 "You can try again within 24 hours.",
                 "session_url": payment.session_url,
                 "status": payment.status,
