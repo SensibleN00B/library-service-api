@@ -1,12 +1,12 @@
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.test import APITestCase
 from rest_framework.reverse import reverse
+from rest_framework.test import APITestCase
 
 from books.models import Book
 from borrowings.models import Borrowing
 from payments.models import Payment
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -37,12 +37,18 @@ class BorrowingFlowTests(APITestCase):
 
     def test_return_book_without_overdue(self):
         borrowing = Borrowing.objects.create(
-            user=self.user1, book=self.book,
-            expected_return_date=timezone.now().date() + timezone.timedelta(days=1)
+            user=self.user1,
+            book=self.book,
+            expected_return_date=timezone.now().date()
+            + timezone.timedelta(days=1),
         )
-        Payment.objects.create(borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100)
+        Payment.objects.create(
+            borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100
+        )
 
-        url = reverse("borrowings:borrowing-return-book-action", args=[borrowing.id])
+        url = reverse(
+            "borrowings:borrowing-return-book-action", args=[borrowing.id]
+        )
         response = self.client.post(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -55,12 +61,18 @@ class BorrowingFlowTests(APITestCase):
 
     def test_return_book_with_overdue_creates_fine_payment(self):
         borrowing = Borrowing.objects.create(
-            user=self.user1, book=self.book,
-            expected_return_date=timezone.now().date() - timezone.timedelta(days=2)
+            user=self.user1,
+            book=self.book,
+            expected_return_date=timezone.now().date()
+            - timezone.timedelta(days=2),
         )
-        Payment.objects.create(borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100)
+        Payment.objects.create(
+            borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100
+        )
 
-        url = reverse("borrowings:borrowing-return-book-action", args=[borrowing.id])
+        url = reverse(
+            "borrowings:borrowing-return-book-action", args=[borrowing.id]
+        )
         response = self.client.post(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -73,12 +85,17 @@ class BorrowingFlowTests(APITestCase):
 
     def test_cannot_return_book_twice(self):
         borrowing = Borrowing.objects.create(
-            user=self.user1, book=self.book,
-            expected_return_date=timezone.now().date()
+            user=self.user1,
+            book=self.book,
+            expected_return_date=timezone.now().date(),
         )
-        Payment.objects.create(borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100)
+        Payment.objects.create(
+            borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100
+        )
 
-        url = reverse("borrowings:borrowing-return-book-action", args=[borrowing.id])
+        url = reverse(
+            "borrowings:borrowing-return-book-action", args=[borrowing.id]
+        )
         self.client.post(url)
 
         response = self.client.post(url)
