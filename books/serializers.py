@@ -14,7 +14,7 @@ class BookSerializer(serializers.ModelSerializer):
             "cover",
             "inventory",
             "daily_fee",
-            "picture"
+            "picture",
         )
 
     @staticmethod
