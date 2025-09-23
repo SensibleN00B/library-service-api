@@ -30,7 +30,7 @@ class StripePayment(PaymentService):
     def create_session(self, request: HttpRequest, data: dict):
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
-            mode="payments",
+            mode="payment",
             line_items=[
                 {
                     "price_data": {

@@ -1,12 +1,12 @@
 from django.urls import include, path
-from rest_framework import routers
+from rest_framework.routers import SimpleRouter
 
 from payments.views import PaymentViewSet, stripe_webhook_view
 
 app_name = "payments"
 
-router = routers.DefaultRouter()
-router.register("library/payments", PaymentViewSet)
+router = SimpleRouter()
+router.register(r"library/payments", PaymentViewSet, basename="payments")
 
 urlpatterns = [
     path("", include(router.urls)),

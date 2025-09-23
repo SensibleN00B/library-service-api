@@ -22,6 +22,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.routers import DefaultRouter
+from collections import OrderedDict
 
 from books.urls import router as books_router
 from borrowings.urls import router as borrowings_router
@@ -41,40 +42,52 @@ router.registry.extend(payments_router.registry)
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
+@permission_classes(
+    [AllowAny]
+)  # /api/ відкритий, решта ендпоінтів — за твоїми пермішнами
 def api_root(request, format=None):
     return Response(
-        {
-            "library/books": reverse(
-                "book-list", request=request, format=format
-            ),
-            "library/borrowings": reverse(
-                "borrowing-list", request=request, format=format
-            ),
-            "library/payments": reverse(
-                "payment-list", request=request, format=format
-            ),
-            "user/register": reverse(
-                "user:user_create", request=request, format=format
-            ),
-            "user/token": reverse(
-                "user:token_obtain_pair", request=request, format=format
-            ),
-            "user/token/refresh": reverse(
-                "user:token_refresh", request=request, format=format
-            ),
-            "user/token/verify": reverse(
-                "user:token_verify", request=request, format=format
-            ),
-            "user/me": reverse(
-                "user:manage_user", request=request, format=format
-            ),
-        }
+        OrderedDict(
+            {
+                # library/*
+                "library/books": reverse(
+                    "books:book-list", request=request, format=format
+                ),
+                "library/borrowings": reverse(
+                    "borrowings:borrowing-list", request=request, format=format
+                ),
+                "library/payments": reverse(
+                    "payments:payments-list", request=request, format=format
+                ),
+                # user/*
+                "user/register": reverse(
+                    "user:user_create", request=request, format=format
+                ),
+                "user/token": reverse(
+                    "user:token_obtain_pair", request=request, format=format
+                ),
+                "user/token/refresh": reverse(
+                    "user:token_refresh", request=request, format=format
+                ),
+                "user/token/verify": reverse(
+                    "user:token_verify", request=request, format=format
+                ),
+                "user/me": reverse(
+                    "user:manage_user", request=request, format=format
+                ),
+            }
+        )
     )
 
 
 urlpatterns = [
+    path("admin/", admin.site.urls),
     path("api/", api_root, name="api-root"),
-    path("api/user/", include("user.urls", namespace="user")),
-    path("api/", include(router.urls)),
+    path("api/", include(("books.urls", "books"), namespace="books")),
+    path(
+        "api/",
+        include(("borrowings.urls", "borrowings"), namespace="borrowings"),
+    ),
+    path("api/", include(("payments.urls", "payments"), namespace="payments")),
+    path("api/user/", include(("user.urls", "user"), namespace="user")),
 ]
