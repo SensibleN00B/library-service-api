@@ -7,7 +7,7 @@ class BookSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Book
-        fields = ("id", "title", "author", "cover", "inventory", "daily_fee")
+        fields = ("id", "title", "author", "cover", "inventory", "daily_fee", "picture")
 
     @staticmethod
     def validate_inventory(value):
@@ -26,4 +26,4 @@ class BookListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Book
-        fields = ("id", "title", "author", "daily_fee")
+        fields = ("id", "title", "author", "daily_fee", "picture")
