@@ -36,7 +36,7 @@ jobs:
 
     env:
       STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
-      FINE_MULTIPLIER: ${{ secrets.FINE_MULTIPLIER }}
+      FINE_MULTIPLIER: ${{ vars.FINE_MULTIPLIER }}
       STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       POSTGRES_DB: ${{ vars.POSTGRES_DB }}

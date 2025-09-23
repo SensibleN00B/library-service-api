@@ -28,7 +28,6 @@ class Borrowing(models.Model):
 
     def return_book(self) -> int:
         return_date = timezone.localtime(timezone.now()).date()
-        # return_date = timezone.now().date()
 
         self.clean_actual_return_date(return_date)
         self.actual_return_date = return_date
