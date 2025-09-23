@@ -7,4 +7,3 @@ from borrowings.models import Borrowing
 class BorrowingAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return Borrowing.objects.select_related("user", "book")
-
