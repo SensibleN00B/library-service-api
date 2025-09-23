@@ -47,10 +47,11 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_spectacular",
     "django_filters",
-    "debug_toolbar",
-    "library",
-    "user",
     "django_celery_beat",
+    "debug_toolbar",
+    "books",
+    "borrowings",
+    "user",
 ]
 
 MIDDLEWARE = [
@@ -153,6 +154,9 @@ AUTH_USER_MODEL = "user.User"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend"
     ],
 }
 

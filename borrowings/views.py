@@ -1,35 +1,17 @@
 from django.core.exceptions import ValidationError
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from library.models import Book, Borrowing
-from library.serializers import (
-    BookListSerializer,
-    BookSerializer,
+from borrowings.filters import BorrowingFilter
+from borrowings.models import Borrowing
+from borrowings.serializers import (
     BorrowingCreateSerializer,
     BorrowingReturnSerializer,
     BorrowingSerializer,
 )
-from utils.mixins import BaseViewSetMethodMixin
-
-
-class BookViewSet(BaseViewSetMethodMixin, viewsets.ModelViewSet):
-    queryset = Book.objects.all()
-    permission_classes = [IsAuthenticated]
-    serializer_class = BookSerializer
-
-    action_serializers = {
-        "list": BookListSerializer,
-    }
-
-    action_permissions = {
-        "create": [IsAdminUser],
-        "update": [IsAdminUser],
-        "partial_update": [IsAdminUser],
-        "destroy": [IsAdminUser],
-    }
 
 
 class BorrowingViewSet(
@@ -41,24 +23,15 @@ class BorrowingViewSet(
     queryset = Borrowing.objects.all()
     serializer_class = BorrowingSerializer
     permission_classes = (IsAuthenticated,)
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = BorrowingFilter
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Borrowing.objects.all()
+        queryset = super().get_queryset()
 
         if not user.is_staff:
             queryset = queryset.filter(user=user)
-
-        user_id = self.request.query_params.get("user_id")
-        if user.is_staff and user_id:
-            queryset = queryset.filter(user__id=user_id)
-
-        is_active = self.request.query_params.get("is_active")
-        if is_active is not None:
-            if is_active.lower() == "true":
-                queryset = queryset.filter(actual_return_date__isnull=True)
-            elif is_active.lower() == "false":
-                queryset = queryset.filter(actual_return_date__isnull=False)
 
         return queryset
 
