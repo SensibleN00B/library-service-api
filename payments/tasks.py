@@ -12,5 +12,5 @@ def check_expired_stripe_sessions():
         status="pending", session_expiration__lte=now
     )
     for payment in expired_payments:
-        payment.status = "expired"
+        payment.status = Payment.Status.expired
         payment.save()
