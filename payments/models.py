@@ -8,6 +8,7 @@ class Payment(models.Model):
     class Status(models.TextChoices):
         pending = "pending", "Pending"
         paid = "paid", "Paid"
+        expired = "expired", "Expired"
 
     class Type(models.TextChoices):
         payment = "payments", "Payment"
@@ -23,6 +24,7 @@ class Payment(models.Model):
     money_to_pay = models.DecimalField(max_digits=10, decimal_places=2)
     session_url = models.URLField(max_length=500, null=True, blank=True)
     session_id = models.CharField(max_length=100, null=True, blank=True)
+    session_expiration = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return (

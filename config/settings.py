@@ -210,6 +210,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "library.tasks.check_overdue_borrowings",
         "schedule": crontab(hour=9, minute=0),
     },
+    "check-expired-payments-every-minute": {
+        "task": "payments.tasks.check_expired_stripe_sessions",
+        "schedule": crontab(minute="*"),
+    },
 }
 
 STRIPE_SECRET_KEY = os.environ["STRIPE_SECRET_KEY"]

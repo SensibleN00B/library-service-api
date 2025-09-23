@@ -12,6 +12,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from payments.models import Payment
+from payments.payment_service.stripe_service import StripePayment
 from payments.serializers import PaymentDetailSerializer, PaymentListSerializer
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -77,6 +78,38 @@ class PaymentViewSet(
                 "author": payment.borrowing.book.author,
                 "status": payment.status,
                 "expected_return_date": payment.borrowing.expected_return_date,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["POST"], url_path="renew")
+    def renew(self, request, pk=None):
+        payment = self.get_object()
+
+        if request.user != payment.borrowing.user:
+            return Response(
+                {"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        if payment.status != Payment.Status.expired:
+            return Response(
+                {"detail": "Payment is not expired"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        stripe_service = StripePayment()
+        new_payment = stripe_service.create_payment(
+            request=request,
+            borrowing=payment.borrowing,
+            money_to_pay=payment.money_to_pay,
+            payment_type=payment.type,
+        )
+
+        return Response(
+            {
+                "detail": "Payment session renewed successfully",
+                "session_url": new_payment.session_url,
+                "status": new_payment.status,
             },
             status=status.HTTP_200_OK,
         )

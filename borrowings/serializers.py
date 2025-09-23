@@ -1,36 +1,11 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from books.models import Book
+from books.serializers import BookSerializer
 from borrowings.models import Borrowing
+from payments.models import Payment
 from payments.serializers import PaymentBorrowingSerializer
 from user.serializers import UserSerializer
-
-
-class BookSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Book
-        fields = ("id", "title", "author", "cover", "inventory", "daily_fee")
-
-    @staticmethod
-    def validate_inventory(value):
-        if value < 0:
-            raise serializers.ValidationError("Inventory cannot be negative.")
-        return value
-
-    @staticmethod
-    def validate_daily_fee(value):
-        if value < 0:
-            raise serializers.ValidationError("Daily fee cannot be negative.")
-        return value
-
-
-class BookListSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Book
-        fields = ("id", "title", "author", "daily_fee")
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
@@ -72,6 +47,8 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         borrow_date = data.get("borrow_date") or timezone.now().date()
         expected_return_date = data["expected_return_date"]
+        request = self.context["request"]
+        user = request.user
 
         if borrow_date > expected_return_date:
             raise serializers.ValidationError(
@@ -85,6 +62,19 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         if data["book"].inventory < 1:
             raise serializers.ValidationError(
                 {"book": "This book is out of stock."}
+            )
+
+        pending_payments = Payment.objects.filter(
+            borrowing__user=user, status="pending"
+        )
+        if pending_payments.exists():
+            raise serializers.ValidationError(
+                {
+                    "detail": [
+                        "You have pending payments."
+                        " You cannot borrow new books until they are resolved."
+                    ]
+                }
             )
 
         return data
