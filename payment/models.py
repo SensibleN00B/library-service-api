@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import CASCADE
 
-from library.models import Borrowing
+from borrowings.models import Borrowing
 
 
 class Payment(models.Model):

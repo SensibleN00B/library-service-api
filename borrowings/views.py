@@ -21,23 +21,6 @@ from payment.payment_service.stripe_service import StripePayment
 from utils.mixins import BaseViewSetMethodMixin
 
 
-class BookViewSet(BaseViewSetMethodMixin, viewsets.ModelViewSet):
-    queryset = Book.objects.all()
-    permission_classes = [IsAuthenticated]
-    serializer_class = BookSerializer
-
-    action_serializers = {
-        "list": BookListSerializer,
-    }
-
-    action_permissions = {
-        "create": [IsAdminUser],
-        "update": [IsAdminUser],
-        "partial_update": [IsAdminUser],
-        "destroy": [IsAdminUser],
-    }
-
-
 class BorrowingViewSet(
     viewsets.GenericViewSet,
     mixins.CreateModelMixin,

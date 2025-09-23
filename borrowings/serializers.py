@@ -1,9 +1,8 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from books.serializers import BookSerializer
+from books.models import Book
 from borrowings.models import Borrowing
-from library.models import Book, Borrowing
 from payment.serializers import PaymentBorrowingSerializer
 from user.serializers import UserSerializer
 

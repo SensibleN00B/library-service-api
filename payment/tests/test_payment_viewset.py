@@ -3,7 +3,8 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
-from library.models import Book, Borrowing
+from books.models import Book
+from borrowings.models import Borrowing
 from payment.models import Payment
 
 User = get_user_model()

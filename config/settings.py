@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "books",
     "borrowings",
-    "library",
     "payment",
     "user",
 ]

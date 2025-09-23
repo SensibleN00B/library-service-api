@@ -1,12 +1,8 @@
 from django.contrib import admin
 
-from library.models import Book, Borrowing
+from borrowings.models import Book
 
 
-@admin.register(Borrowing)
-class BorrowingAdmin(admin.ModelAdmin):
-    def get_queryset(self, request):
-        return Borrowing.objects.select_related("user", "book")
 
 
 @admin.register(Book)
