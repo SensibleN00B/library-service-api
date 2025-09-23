@@ -1,14 +1,42 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from books.serializers import BookSerializer
+from books.models import Book
 from borrowings.models import Borrowing
+from payment.serializers import PaymentBorrowingSerializer
 from user.serializers import UserSerializer
+
+
+class BookSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Book
+        fields = ("id", "title", "author", "cover", "inventory", "daily_fee")
+
+    @staticmethod
+    def validate_inventory(value):
+        if value < 0:
+            raise serializers.ValidationError("Inventory cannot be negative.")
+        return value
+
+    @staticmethod
+    def validate_daily_fee(value):
+        if value < 0:
+            raise serializers.ValidationError("Daily fee cannot be negative.")
+        return value
+
+
+class BookListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Book
+        fields = ("id", "title", "author", "daily_fee")
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
     book = BookSerializer(read_only=True)
     user = UserSerializer(read_only=True)
+    payments = PaymentBorrowingSerializer(read_only=True, many=True)
 
     class Meta:
         model = Borrowing
@@ -19,13 +47,16 @@ class BorrowingSerializer(serializers.ModelSerializer):
             "actual_return_date",
             "book",
             "user",
+            "payments",
         )
 
 
 class BorrowingCreateSerializer(serializers.ModelSerializer):
+    payments = PaymentBorrowingSerializer(read_only=True, many=True)
+
     class Meta:
         model = Borrowing
-        fields = ("borrow_date", "expected_return_date", "book")
+        fields = ("borrow_date", "expected_return_date", "book", "payments")
         extra_kwargs = {"borrow_date": {"required": False}}
 
     def create(self, validated_data):

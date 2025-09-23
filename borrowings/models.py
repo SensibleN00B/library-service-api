@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils.timezone import now
+from django.db.models import Q
+from django.utils import timezone
 
 from books.models import Book
 
@@ -19,17 +20,26 @@ class Borrowing(models.Model):
         related_name="borrowings",
     )
 
-    def return_book(self):
+    def clean_actual_return_date(self, return_date):
         if self.actual_return_date is not None:
             raise ValidationError("This borrowing has already been returned.")
-
-        self.actual_return_date = now().date()
-        if self.actual_return_date < self.borrow_date:
+        if return_date < self.borrow_date:
             raise ValidationError("Return date cannot be before borrow date.")
+
+    def return_book(self) -> int:
+        return_date = timezone.localtime(timezone.now()).date()
+        # return_date = timezone.now().date()
+
+        self.clean_actual_return_date(return_date)
+        self.actual_return_date = return_date
+        self.save()
 
         self.book.inventory += 1
         self.book.save()
-        self.save()
+
+        return max(
+            (self.actual_return_date - self.expected_return_date).days, 0
+        )
 
     def __str__(self):
         return f"{self.book} borrowed by {self.user} on {self.borrow_date}"
