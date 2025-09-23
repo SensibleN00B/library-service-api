@@ -13,10 +13,10 @@ User = get_user_model()
 class PaymentViewSetTests(APITestCase):
     def setUp(self):
         self.admin = User.objects.create_user(
-            password="adminpass", is_staff=True, email="admin@admin.com"
+            password="adminpassword", is_staff=True, email="admin@admin.com"
         )
         self.user1 = User.objects.create_user(
-            password="user1pass", email="user1@user1.com"
+            password="user1password", email="user1@user1.com"
         )
         self.user2 = User.objects.create_user(
             password="user2pass", email="user2@user2.com"
