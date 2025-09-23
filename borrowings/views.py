@@ -157,13 +157,8 @@ class BorrowingViewSet(
             )
 
         if overdue > 0:
-            raw_multiplier = str(settings.FINE_MULTIPLIER)
-            try:
-                FINE_MULTIPLIER = Decimal(raw_multiplier)
-            except InvalidOperation:
-                raise ValueError(f"Invalid FINE_MULTIPLIER: {raw_multiplier}")
             stripe_payment = StripePayment()
-            money_to_pay = overdue * borrowing.book.daily_fee * FINE_MULTIPLIER
+            money_to_pay = overdue * borrowing.book.daily_fee * Decimal(str(settings.FINE_MULTIPLIER))
 
             with transaction.atomic():
                 payment = stripe_payment.create_payment(
