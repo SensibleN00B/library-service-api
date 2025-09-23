@@ -20,7 +20,6 @@ jobs:
           POSTGRES_DB: ${{ vars.POSTGRES_DB }}
           POSTGRES_USER: ${{ vars.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
         ports:
           - 5432:5432
         options: >-
@@ -36,6 +35,7 @@ jobs:
           --health-interval=5s --health-timeout=3s --health-retries=10
 
     env:
+      FINE_MULTIPLIER: ${{ secrets.FINE_MULTIPLIER }}
       STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       POSTGRES_DB: ${{ vars.POSTGRES_DB }}
