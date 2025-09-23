@@ -160,6 +160,22 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend"
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Library service API",
+    "DESCRIPTION": (
+        "This API provides functionality for managing a library system.\n\n"
+        "Features:\n"
+        "- Manage books catalog\n"
+        "- Register and track borrowings\n"
+        "- Return borrowed books\n"
+        "- Access admin tools for managing library data\n\n"
+        "Authentication is required for most endpoints"
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 SIMPLE_JWT = {

@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 
@@ -9,6 +10,10 @@ from books.serializers import (
 from utils.mixins import BaseViewSetMethodMixin
 
 
+@extend_schema(
+    description="API for managing books in the library."
+                "Allows users to view books, admins can create, update, or delete books.",
+)
 class BookViewSet(BaseViewSetMethodMixin, viewsets.ModelViewSet):
     queryset = Book.objects.all()
     permission_classes = [IsAuthenticated]
