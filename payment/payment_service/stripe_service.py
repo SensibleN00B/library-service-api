@@ -1,7 +1,7 @@
-import stripe
-from django.conf import settings
 from abc import ABC, abstractmethod
 
+import stripe
+from django.conf import settings
 from django.http import HttpRequest
 from django.urls import reverse
 
@@ -17,47 +17,47 @@ class PaymentService(ABC):
 
     @abstractmethod
     def create_payment(
-            self,
-            request: HttpRequest,
-            borrowing: "Borrowing",
-            money_to_pay: float,
-            payment_type=Payment.Type.payment
+        self,
+        request: HttpRequest,
+        borrowing,
+        money_to_pay: float,
+        payment_type=Payment.Type.payment,
     ):
         pass
 
 
 class StripePayment(PaymentService):
     def create_session(self, request: HttpRequest, data: dict):
-            session = stripe.checkout.Session.create(
-                payment_method_types=["card"],
-                mode="payment",
-                line_items=[
-                    {
-                        "price_data": {
-                            "currency": "usd",
-                            "product_data": {
-                                "name": data["book_title"],
-                            },
-                            "unit_amount": int(data["money_to_pay"] * 100),
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            mode="payment",
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {
+                            "name": data["book_title"],
                         },
-                        "quantity": 1,
-                    }
-                ],
-                success_url=request.build_absolute_uri(
-                    reverse("payment:payment-success", args=[data["payment"]])
-                ),
-                cancel_url = request.build_absolute_uri(
-                    reverse("payment:payment-cancel", args=[data["payment"]])
-                )
-            )
-            return session
+                        "unit_amount": int(data["money_to_pay"] * 100),
+                    },
+                    "quantity": 1,
+                }
+            ],
+            success_url=request.build_absolute_uri(
+                reverse("payment:payment-success", args=[data["payment"]])
+            ),
+            cancel_url=request.build_absolute_uri(
+                reverse("payment:payment-cancel", args=[data["payment"]])
+            ),
+        )
+        return session
 
     def create_payment(
-            self,
-            request: HttpRequest,
-            borrowing: "Borrowing",
-            money_to_pay: float,
-            payment_type=None
+        self,
+        request: HttpRequest,
+        borrowing,
+        money_to_pay: float,
+        payment_type=None,
     ):
         if payment_type is None:
             payment_type = Payment.Type.payment
@@ -69,11 +69,14 @@ class StripePayment(PaymentService):
             type=payment_type,
         )
 
-        session = self.create_session(request, {
-            "book_title": book_title,
-            "money_to_pay": money_to_pay,
-            "payment": payment.id,
-        })
+        session = self.create_session(
+            request,
+            {
+                "book_title": book_title,
+                "money_to_pay": money_to_pay,
+                "payment": payment.id,
+            },
+        )
 
         payment.session_id = session.id
         payment.session_url = session.url

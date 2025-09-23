@@ -16,9 +16,9 @@ from borrowings.serializers import (
     BorrowingReturnSerializer,
     BorrowingSerializer,
 )
-from utils.mixins import BaseViewSetMethodMixin
 from payment.models import Payment
 from payment.payment_service.stripe_service import StripePayment
+from utils.mixins import BaseViewSetMethodMixin
 
 
 class BookViewSet(BaseViewSetMethodMixin, viewsets.ModelViewSet):
@@ -68,7 +68,9 @@ class BorrowingViewSet(
 
     def perform_create(self, serializer):
         borrowing = serializer.save()
-        days_of_use = (borrowing.expected_return_date - borrowing.borrow_date).days
+        days_of_use = (
+            borrowing.expected_return_date - borrowing.borrow_date
+        ).days
         money_to_pay = borrowing.book.daily_fee * days_of_use
 
         stripe_payment = StripePayment()
@@ -94,7 +96,11 @@ class BorrowingViewSet(
 
         if overdue > 0:
             stripe_payment = StripePayment()
-            money_to_pay = overdue * borrowing.book.daily_fee * Decimal(str(settings.FINE_MULTIPLIER))
+            money_to_pay = (
+                overdue
+                * borrowing.book.daily_fee
+                * Decimal(str(settings.FINE_MULTIPLIER))
+            )
 
             with transaction.atomic():
                 payment = stripe_payment.create_payment(
@@ -113,7 +119,7 @@ class BorrowingViewSet(
                         "money_to_pay": payment.money_to_pay,
                         "session_url": payment.session_url,
                     },
-                    status=status.HTTP_200_OK
+                    status=status.HTTP_200_OK,
                 )
 
         return Response({"status": "book_returned"}, status=status.HTTP_200_OK)

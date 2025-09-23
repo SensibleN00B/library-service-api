@@ -26,7 +26,6 @@ class Borrowing(models.Model):
         if return_date < self.borrow_date:
             raise ValidationError("Return date cannot be before borrow date.")
 
-
     def return_book(self) -> int:
         return_date = timezone.localtime(timezone.now()).date()
         # return_date = timezone.now().date()
@@ -38,7 +37,9 @@ class Borrowing(models.Model):
         self.book.inventory += 1
         self.book.save()
 
-        return max((self.actual_return_date - self.expected_return_date).days, 0)
+        return max(
+            (self.actual_return_date - self.expected_return_date).days, 0
+        )
 
     def __str__(self):
         return f"{self.book} borrowed by {self.user} on {self.borrow_date}"
