@@ -15,7 +15,6 @@ from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 
-import environ
 from celery.schedules import crontab
 from dotenv import load_dotenv
 
@@ -26,7 +25,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 load_dotenv()
-env = environ.Env()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ["SECRET_KEY"]
@@ -217,7 +215,7 @@ CELERY_BEAT_SCHEDULE = {
 STRIPE_SECRET_KEY = os.environ["STRIPE_SECRET_KEY"]
 STRIPE_WEBHOOK_SECRET = os.environ["STRIPE_WEBHOOK_SECRET"]
 
-FINE_MULTIPLIER = env.decimal("FINE_MULTIPLIER", default=Decimal("2"))
+FINE_MULTIPLIER = Decimal(os.environ["FINE_MULTIPLIER"])
 
 STORAGES = {
     "default": {
