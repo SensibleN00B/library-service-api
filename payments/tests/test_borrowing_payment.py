@@ -19,7 +19,7 @@ class BorrowingFlowTests(APITestCase):
         self.client.force_authenticate(self.user1)
 
         self.book = Book.objects.create(
-            title="Final Space", author="SomeONe", daily_fee=10, inventory=1
+            title="Final Space", author="SomeOne", daily_fee=10, inventory=1
         )
 
     def test_borrowing_creation_creates_pending_payment(self):
@@ -42,7 +42,7 @@ class BorrowingFlowTests(APITestCase):
         )
         Payment.objects.create(borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100)
 
-        url = reverse("borrowings:borrowings-return", args=[borrowing.id])
+        url = reverse("borrowings:borrowing-return", args=[borrowing.id])
         response = self.client.post(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -60,7 +60,7 @@ class BorrowingFlowTests(APITestCase):
         )
         Payment.objects.create(borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100)
 
-        url = reverse("borrowings:borrowings-return", args=[borrowing.id])
+        url = reverse("borrowings:borrowing-return", args=[borrowing.id])
         response = self.client.post(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -78,8 +78,8 @@ class BorrowingFlowTests(APITestCase):
         )
         Payment.objects.create(borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100)
 
-        url = reverse("borrowings:borrowings-return", args=[borrowing.id])
-        self.client.post(url)  # first return works
+        url = reverse("borrowings:borrowing-return", args=[borrowing.id])
+        self.client.post(url)
 
         response = self.client.post(url)  # second return should fail
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
