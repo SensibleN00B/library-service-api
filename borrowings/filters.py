@@ -11,8 +11,7 @@ class BorrowingFilter(django_filters.FilterSet):
         model = Borrowing
         fields = ["user_id", "is_active"]
 
-    @staticmethod
-    def filter_is_active(queryset, value):
+    def filter_is_active(self, queryset, name, value):
         if value:
             return queryset.filter(actual_return_date__isnull=True)
         else:
