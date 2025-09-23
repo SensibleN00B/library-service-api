@@ -5,7 +5,13 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, OpenApiResponse, OpenApiExample
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -22,12 +28,13 @@ from payments.models import Payment
 from payments.payment_service.stripe_service import StripePayment
 from utils.mixins import BaseViewSetMethodMixin
 
+
 @extend_schema_view(
     list=extend_schema(
         summary="List borrowings",
         description="Get a list of all borrowings. "
-                    "For a regular user, only their own borrowings are returned. "
-                    "Staff can filter by user_id and is_active.",
+        "For a regular user, only their own borrowings are returned. "
+        "Staff can filter by user_id and is_active.",
         parameters=[
             OpenApiParameter(
                 name="user_id",
@@ -39,20 +46,22 @@ from utils.mixins import BaseViewSetMethodMixin
                 name="is_active",
                 type=OpenApiTypes.BOOL,
                 location=OpenApiParameter.QUERY,
-                description="Filter borrowings by activity status (true/false).",
+                description="Filter borrowings by activity status "
+                "(true/false).",
             ),
         ],
         responses={200: BorrowingSerializer},
     ),
     retrieve=extend_schema(
         summary="Retrieve borrowing",
-        description="Get detailed information about a specific borrowing by its ID.",
+        description="Get detailed information about a specific"
+        "borrowing by its ID.",
         responses={200: BorrowingSerializer},
     ),
     create=extend_schema(
         summary="Create borrowing",
         description="Create a new borrowing. "
-                    "A user can borrow a book if it is available.",
+        "A user can borrow a book if it is available.",
         request=BorrowingCreateSerializer,
         responses={
             201: BorrowingSerializer,
@@ -108,8 +117,8 @@ class BorrowingViewSet(
     @extend_schema(
         summary="Return a book",
         description="Marks a borrowing as returned. "
-                    "If the book has already been returned or other business "
-                    "constraints apply - an error is raised.",
+        "If the book has already been returned or other business "
+        "constraints apply - an error is raised.",
         request=None,
         responses={
             200: OpenApiResponse(
@@ -123,11 +132,14 @@ class BorrowingViewSet(
                 description="The book was successfully returned.",
             ),
             400: OpenApiResponse(
-                description="Error: the book is already returned or another business rule was violated.",
+                description="Error: the book is already returned or "
+                "another business rule was violated.",
                 examples=[
                     OpenApiExample(
                         "Return error",
-                        value={"detail": "This book has already been returned."},
+                        value={
+                            "detail": "This book has already been returned."
+                        },
                     ),
                 ],
             ),

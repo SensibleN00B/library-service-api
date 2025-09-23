@@ -1,15 +1,17 @@
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
 from user.serializers import ManageUserSerializer, UserSerializer
 
+
 @extend_schema(
-    description="Register a new user with email and password. No authentication required.",
+    description="Register a new user with email and password. "
+    "No authentication required.",
     responses={
         201: OpenApiResponse(description="User successfully created"),
         400: OpenApiResponse(description="Validation errors"),
-    }
+    },
 )
 class UserCreateView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -17,11 +19,14 @@ class UserCreateView(generics.CreateAPIView):
 
 
 @extend_schema(
-    description="Retrieve or update authenticated user's profile. User must be logged in.",
+    description="Retrieve or update authenticated user's profile. "
+    "User must be logged in.",
     responses={
         200: OpenApiResponse(description="User profile retrieved or updated"),
-        401: OpenApiResponse(description="Authentication credentials were not provided"),
-    }
+        401: OpenApiResponse(
+            description="Authentication credentials were not provided"
+        ),
+    },
 )
 class ManageUserView(generics.RetrieveUpdateAPIView):
     serializer_class = ManageUserSerializer

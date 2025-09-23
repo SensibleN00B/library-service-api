@@ -12,7 +12,8 @@ from utils.mixins import BaseViewSetMethodMixin
 
 @extend_schema(
     description="API for managing books in the library."
-                "Allows users to view books, admins can create, update, or delete books.",
+    "Allows users to view books,"
+    "admins can create, update, or delete books.",
 )
 class BookViewSet(BaseViewSetMethodMixin, viewsets.ModelViewSet):
     queryset = Book.objects.all()

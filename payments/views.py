@@ -3,7 +3,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -17,7 +17,8 @@ endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 
 
 @extend_schema(
-    description="API for managing payments in the library. Users can view their payments, admins can see all payments."
+    description="API for managing payments in the library. "
+    "Users can view their payments, admins can see all payments."
 )
 class PaymentViewSet(
     mixins.ListModelMixin,
@@ -39,11 +40,12 @@ class PaymentViewSet(
         return qs
 
     @extend_schema(
-        description="Return success status for a payment. Users can only access their own payments.",
+        description="Return success status for a payment. "
+        "Users can only access their own payments.",
         responses={
             200: OpenApiResponse(description="Payment successfully paid"),
             403: OpenApiResponse(description="Not authorized"),
-        }
+        },
     )
     @action(detail=True, methods=["GET"], url_path="success")
     def success(self, request, pk=None):
@@ -78,11 +80,14 @@ class PaymentViewSet(
         )
 
     @extend_schema(
-        description="Return cancel status for a payment. Users can only access their own payments.",
+        description="Return cancel status for a payment. "
+        "Users can only access their own payments.",
         responses={
-            200: OpenApiResponse(description="Payment canceled or not completed"),
+            200: OpenApiResponse(
+                description="Payment canceled or not completed"
+            ),
             403: OpenApiResponse(description="Not authorized"),
-        }
+        },
     )
     @action(detail=True, methods=["GET"], url_path="cancel")
     def cancel(self, request, pk=None):
