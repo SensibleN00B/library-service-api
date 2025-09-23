@@ -36,6 +36,7 @@ jobs:
           --health-interval=5s --health-timeout=3s --health-retries=10
 
     env:
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       POSTGRES_DB: ${{ vars.POSTGRES_DB }}
       POSTGRES_USER: ${{ vars.POSTGRES_USER }}
