@@ -194,7 +194,7 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour=9, minute=0),
     },
     "check-expired-payments-every-minute": {
-        "task": "payment.tasks.check_expired_stripe_sessions",
+        "task": "payments.tasks.check_expired_stripe_sessions",
         "schedule": crontab(minute="*"),
     },
 }
