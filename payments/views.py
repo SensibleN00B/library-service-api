@@ -114,40 +114,6 @@ class PaymentViewSet(
             status=status.HTTP_200_OK,
         )
 
-
-    @action(detail=True, methods=["POST"], url_path="renew")
-    def renew(self, request, pk=None):
-        payment = self.get_object()
-
-        if request.user != payment.borrowing.user:
-            return Response(
-                {"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN
-            )
-
-        if payment.status != Payment.Status.expired:
-            return Response(
-                {"detail": "Payment is not expired"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        stripe_service = StripePayment()
-        new_payment = stripe_service.create_payment(
-            request=request,
-            borrowing=payment.borrowing,
-            money_to_pay=payment.money_to_pay,
-            payment_type=payment.type,
-        )
-
-        return Response(
-            {
-                "detail": "Payment session renewed successfully",
-                "session_url": new_payment.session_url,
-                "status": new_payment.status,
-            },
-            status=status.HTTP_200_OK,
-        )
-
-
     @extend_schema(
         description="Return cancel status for a payment. "
         "Users can only access their own payments.",
@@ -158,7 +124,6 @@ class PaymentViewSet(
             403: OpenApiResponse(description="Not authorized"),
         },
     )
-
     @action(detail=True, methods=["GET"], url_path="cancel")
     def cancel(self, request, pk=None):
         payment = self.get_object()
