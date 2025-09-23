@@ -11,11 +11,11 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
-import environ
 from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 
+import environ
 from celery.schedules import crontab
 from dotenv import load_dotenv
 
