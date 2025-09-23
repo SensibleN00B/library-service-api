@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "books",
     "borrowings",
-    "payment",
+    "payments",
     "user",
 ]
 

@@ -10,13 +10,13 @@ class Payment(models.Model):
         paid = "paid", "Paid"
 
     class Type(models.TextChoices):
-        payment = "payment", "Payment"
+        payment = "payments", "Payment"
         fine = "fine", "Fine"
 
     status = models.CharField(
         max_length=8, choices=Status, default=Status.pending
     )
-    type = models.CharField(max_length=7, choices=Type, default=Type.payment)
+    type = models.CharField(max_length=10, choices=Type, default=Type.payment)
     borrowing = models.ForeignKey(
         Borrowing, related_name="payments", on_delete=CASCADE
     )

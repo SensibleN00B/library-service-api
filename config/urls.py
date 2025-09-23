@@ -15,17 +15,78 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from collections import OrderedDict
+
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
+from rest_framework.routers import DefaultRouter
+
+from books.urls import router as books_router
+from borrowings.urls import router as borrowings_router
+from payments.urls import router as payments_router
+
+
+class OpenRootRouter(DefaultRouter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.APIRootView.permission_classes = [AllowAny]
+
+
+router = OpenRootRouter()
+router.registry.extend(books_router.registry)
+router.registry.extend(borrowings_router.registry)
+router.registry.extend(payments_router.registry)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def api_root(request, format=None):
+    return Response(
+        OrderedDict(
+            {
+                # library/*
+                "library/books": reverse(
+                    "books:book-list", request=request, format=format
+                ),
+                "library/borrowings": reverse(
+                    "borrowings:borrowing-list", request=request, format=format
+                ),
+                "library/payments": reverse(
+                    "payments:payments-list", request=request, format=format
+                ),
+                # user/*
+                "user/register": reverse(
+                    "user:user_create", request=request, format=format
+                ),
+                "user/token": reverse(
+                    "user:token_obtain_pair", request=request, format=format
+                ),
+                "user/token/refresh": reverse(
+                    "user:token_refresh", request=request, format=format
+                ),
+                "user/token/verify": reverse(
+                    "user:token_verify", request=request, format=format
+                ),
+                "user/me": reverse(
+                    "user:manage_user", request=request, format=format
+                ),
+            }
+        )
+    )
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/user/", include("user.urls", namespace="user")),
-    path("api/books/", include("books.urls", namespace="books")),
+    path("api/", api_root, name="api-root"),
+    path("api/", include(("books.urls", "books"), namespace="books")),
     path(
-        "api/borrowings/",
-        include("borrowings.urls", namespace="borrowings"),
+        "api/",
+        include(("borrowings.urls", "borrowings"), namespace="borrowings"),
     ),
-    path("api/payment/", include("payment.urls", namespace="payment")),
-    path("__debug__/", include("debug_toolbar.urls")),
+    path("api/", include(("payments.urls", "payments"), namespace="payments")),
+    path("api/user/", include(("user.urls", "user"), namespace="user")),
 ]

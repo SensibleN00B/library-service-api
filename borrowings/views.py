@@ -16,8 +16,8 @@ from borrowings.serializers import (
     BorrowingReturnSerializer,
     BorrowingSerializer,
 )
-from payment.models import Payment
-from payment.payment_service.stripe_service import StripePayment
+from payments.models import Payment
+from payments.payment_service.stripe_service import StripePayment
 from utils.mixins import BaseViewSetMethodMixin
 
 
@@ -95,7 +95,7 @@ class BorrowingViewSet(
 
                 return Response(
                     {
-                        "detail": "Book overdue, fine payment required",
+                        "detail": "Book overdue, fine payments required",
                         "type": payment.type,
                         "status": payment.status,
                         "days_of_overdue": overdue,

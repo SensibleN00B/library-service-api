@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from books.models import Book
 from borrowings.models import Borrowing
-from payment.serializers import PaymentBorrowingSerializer
+from payments.serializers import PaymentBorrowingSerializer
 from user.serializers import UserSerializer
 
 

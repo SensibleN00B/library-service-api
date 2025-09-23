@@ -5,7 +5,7 @@ from django.conf import settings
 from django.http import HttpRequest
 from django.urls import reverse
 
-from payment.models import Payment
+from payments.models import Payment
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -44,10 +44,10 @@ class StripePayment(PaymentService):
                 }
             ],
             success_url=request.build_absolute_uri(
-                reverse("payment:payment-success", args=[data["payment"]])
+                reverse("payments:payments-success", args=[data["payments"]])
             ),
             cancel_url=request.build_absolute_uri(
-                reverse("payment:payment-cancel", args=[data["payment"]])
+                reverse("payments:payments-cancel", args=[data["payments"]])
             ),
         )
         return session
@@ -74,7 +74,7 @@ class StripePayment(PaymentService):
             {
                 "book_title": book_title,
                 "money_to_pay": money_to_pay,
-                "payment": payment.id,
+                "payments": payment.id,
             },
         )
 

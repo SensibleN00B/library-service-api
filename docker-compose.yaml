@@ -36,7 +36,7 @@ services:
 
   flower:
     image: mher/flower:2.0.1
-    restart: always
+#    restart: always
     ports:
       - "5555:5555"
     depends_on:
