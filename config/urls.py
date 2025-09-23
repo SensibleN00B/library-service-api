@@ -15,6 +15,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from collections import OrderedDict
+
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework.decorators import api_view, permission_classes
@@ -22,7 +24,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.routers import DefaultRouter
-from collections import OrderedDict
 
 from books.urls import router as books_router
 from borrowings.urls import router as borrowings_router
