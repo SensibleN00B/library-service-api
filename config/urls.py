@@ -45,7 +45,7 @@ router.registry.extend(payments_router.registry)
 @api_view(["GET"])
 @permission_classes(
     [AllowAny]
-)  # /api/ відкритий, решта ендпоінтів — за твоїми пермішнами
+)
 def api_root(request, format=None):
     return Response(
         OrderedDict(
