@@ -158,7 +158,11 @@ class BorrowingViewSet(
 
         if overdue > 0:
             stripe_payment = StripePayment()
-            money_to_pay = overdue * borrowing.book.daily_fee * Decimal(str(settings.FINE_MULTIPLIER))
+            money_to_pay = (
+                overdue
+                * borrowing.book.daily_fee
+                * Decimal(str(settings.FINE_MULTIPLIER))
+            )
 
             with transaction.atomic():
                 payment = stripe_payment.create_payment(
