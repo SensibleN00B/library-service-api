@@ -3,7 +3,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from library.models import Book, Borrowing
+from books.models import Book
+from borrowings.models import Borrowing
 
 User = get_user_model()
 
@@ -25,7 +26,7 @@ class BorrowingTest(APITestCase):
             book=self.book,
             borrow_date="2025-01-01",
         )
-        self.url = reverse("library:borrowing-list")
+        self.url = reverse("borrowings:borrowing-list")
 
     def test_auth_required(self):
         response = self.client.get(self.url)
@@ -88,16 +89,16 @@ class BorrowingTest(APITestCase):
     def test_filter_by_active(self):
         self.client.force_authenticate(self.user)
 
-        response = self.client.get(self.url + f"?is_active=True")
+        response = self.client.get(self.url + "?is_active=True")
         self.assertEqual(len(response.data), 1)
 
-        response = self.client.get(self.url + f"?is_active=False")
+        response = self.client.get(self.url + "?is_active=False")
         self.assertEqual(len(response.data), 0)
 
     def test_return_book_success(self):
         self.client.force_authenticate(self.user)
         url = reverse(
-            "library:borrowing-return-book-action", args=[self.borrowing.id]
+            "borrowings:borrowing-return-book-action", args=[self.borrowing.id]
         )
 
         response = self.client.post(url)
@@ -112,7 +113,7 @@ class BorrowingTest(APITestCase):
     def test_return_book_fails_if_already_returned(self):
         self.client.force_authenticate(self.user)
         url = reverse(
-            "library:borrowing-return-book-action", args=[self.borrowing.id]
+            "borrowings:borrowing-return-book-action", args=[self.borrowing.id]
         )
 
         self.borrowing.actual_return_date = "2025-02-02"

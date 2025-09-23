@@ -6,8 +6,8 @@ from rest_framework import status
 from rest_framework.serializers import ValidationError
 from rest_framework.test import APITestCase
 
-from library.models import Book
-from library.serializers import BookSerializer
+from books.models import Book
+from books.serializers import BookSerializer
 
 
 class BookModelTest(TestCase):
@@ -46,7 +46,7 @@ class BookAPITest(APITestCase):
         self.book = Book.objects.create(
             title="Original Book", author="Author", inventory=5, daily_fee=3.0
         )
-        self.list_url = reverse("library:book-list")
+        self.list_url = reverse("books:book-list")
 
     def test_list_requires_authentication(self):
         """Unauthenticated users cannot list books"""
@@ -63,7 +63,7 @@ class BookAPITest(APITestCase):
     def test_retrieve_book(self):
         """Retrieve a book detail"""
         self.client.force_authenticate(user=self.user)
-        url = reverse("library:book-detail", args=[self.book.id])
+        url = reverse("books:book-detail", args=[self.book.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["title"], self.book.title)
@@ -95,7 +95,7 @@ class BookAPITest(APITestCase):
     def test_update_book_admin_only(self):
         """Admin can update book"""
         self.client.force_authenticate(user=self.admin)
-        url = reverse("library:book-detail", args=[self.book.id])
+        url = reverse("books:book-detail", args=[self.book.id])
         payload = {
             "title": "Updated Title",
             "author": "Author",
@@ -110,7 +110,7 @@ class BookAPITest(APITestCase):
     def test_partial_update_book_admin_only(self):
         """Admin can partially update book"""
         self.client.force_authenticate(user=self.admin)
-        url = reverse("library:book-detail", args=[self.book.id])
+        url = reverse("books:book-detail", args=[self.book.id])
         payload = {"inventory": 10}
         response = self.client.patch(url, payload)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -120,7 +120,7 @@ class BookAPITest(APITestCase):
     def test_update_book_non_admin_forbidden(self):
         """Non-admin cannot update book"""
         self.client.force_authenticate(user=self.user)
-        url = reverse("library:book-detail", args=[self.book.id])
+        url = reverse("books:book-detail", args=[self.book.id])
         payload = {"title": "Hacked"}
         response = self.client.put(url, payload)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -128,14 +128,14 @@ class BookAPITest(APITestCase):
     def test_destroy_book_admin_only(self):
         """Admin can delete book"""
         self.client.force_authenticate(user=self.admin)
-        url = reverse("library:book-detail", args=[self.book.id])
+        url = reverse("books:book-detail", args=[self.book.id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_destroy_book_non_admin_forbidden(self):
         """Non-admin cannot delete book"""
         self.client.force_authenticate(user=self.user)
-        url = reverse("library:book-detail", args=[self.book.id])
+        url = reverse("books:book-detail", args=[self.book.id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
