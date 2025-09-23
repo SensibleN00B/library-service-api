@@ -199,3 +199,19 @@ STRIPE_SECRET_KEY = os.environ["STRIPE_SECRET_KEY"]
 STRIPE_WEBHOOK_SECRET = os.environ["STRIPE_WEBHOOK_SECRET"]
 
 FINE_MULTIPLIER = os.environ["FINE_MULTIPLIER"]
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.dropbox.DropboxStorage",
+        "OPTIONS": {
+            "oauth2_access_token": os.environ["OAUTH2_ACCESS_TOKEN"],
+            "oauth2_refresh_token": os.environ["OAUTH2_REFRESH_TOKEN"],
+            "app_secret": os.environ["APP_SECRET"],
+            "app_key": os.environ["APP_KEY"],
+            "root_path": "media/",
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
