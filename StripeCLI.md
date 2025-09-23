@@ -2,6 +2,19 @@
 
 ## Installing Stripe CLI  
 
+Go to stripe
+👉 [Stripe](https://stripe.com/) 
+
+Login or register
+
+Add sandbox and copy your secret key to your env
+![img.png](readme_images/img_5.png)
+It looks like this:
+sk_test_51S....
+
+
+---
+
 ### 1. Download Stripe CLI  
 
 Go to the release page:  
