@@ -37,6 +37,7 @@ class StripePayment(PaymentService):
                         "currency": "usd",
                         "product_data": {
                             "name": data["book_title"],
+                            "images": [data.get("book_picture_url")],
                         },
                         "unit_amount": int(data["money_to_pay"] * 100),
                     },
@@ -62,6 +63,11 @@ class StripePayment(PaymentService):
         if payment_type is None:
             payment_type = Payment.Type.payment
         book_title = f"{borrowing.book.title} by {borrowing.book.author}"
+        book_picture_url = (
+            request.build_absolute_uri(borrowing.book.picture.url)
+            if borrowing.book.picture
+            else None
+        )
 
         payment = Payment.objects.create(
             borrowing=borrowing,
@@ -75,6 +81,7 @@ class StripePayment(PaymentService):
                 "book_title": book_title,
                 "money_to_pay": money_to_pay,
                 "payments": payment.id,
+                "book_picture_url": book_picture_url,
             },
         )
 

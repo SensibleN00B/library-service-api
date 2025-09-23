@@ -31,7 +31,7 @@ class PaymentViewSet(
     def get_queryset(self):
         qs = self.queryset
         if not self.request.user.is_staff:
-            qs = qs.filter(borrowing__user=self.request.user)  # <-- ось так
+            qs = qs.filter(borrowing__user=self.request.user)
         return qs
 
     @action(detail=True, methods=["GET"], url_path="success")
