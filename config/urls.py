@@ -43,9 +43,7 @@ router.registry.extend(payments_router.registry)
 
 
 @api_view(["GET"])
-@permission_classes(
-    [AllowAny]
-)
+@permission_classes([AllowAny])
 def api_root(request, format=None):
     return Response(
         OrderedDict(
