@@ -46,12 +46,13 @@ class BorrowingSerializer(serializers.ModelSerializer):
             "actual_return_date",
             "book",
             "user",
-            "payments"
+            "payments",
         )
 
 
 class BorrowingCreateSerializer(serializers.ModelSerializer):
     payments = PaymentBorrowingSerializer(read_only=True, many=True)
+
     class Meta:
         model = Borrowing
         fields = ("borrow_date", "expected_return_date", "book", "payments")

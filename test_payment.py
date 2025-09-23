@@ -1,11 +1,11 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
-from library.models import Borrowing, Book
+from library.models import Book, Borrowing
 from payment.models import Payment
 
-from django.utils import timezone
 User = get_user_model()
 
 book = Book.objects.create(title="Test", author="Test_author", daily_fee=0.2)

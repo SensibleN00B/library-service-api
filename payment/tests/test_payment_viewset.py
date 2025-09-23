@@ -8,6 +8,7 @@ from payment.models import Payment
 
 User = get_user_model()
 
+
 class PaymentViewSetTests(APITestCase):
     def setUp(self):
         self.admin = User.objects.create_user(
@@ -20,8 +21,12 @@ class PaymentViewSetTests(APITestCase):
             password="user2pass", email="user2@user2.com"
         )
 
-        self.book1 = Book.objects.create(title="Book1", author="Author1", daily_fee=10)
-        self.book2 = Book.objects.create(title="Book2", author="Author2", daily_fee=5)
+        self.book1 = Book.objects.create(
+            title="Book1", author="Author1", daily_fee=10
+        )
+        self.book2 = Book.objects.create(
+            title="Book2", author="Author2", daily_fee=5
+        )
 
         self.borrowing1 = Borrowing.objects.create(
             book=self.book1, user=self.user1, expected_return_date="2030-01-01"
@@ -33,12 +38,12 @@ class PaymentViewSetTests(APITestCase):
         self.payment1 = Payment.objects.create(
             borrowing=self.borrowing1,
             money_to_pay=100,
-            type=Payment.Type.payment
+            type=Payment.Type.payment,
         )
         self.payment2 = Payment.objects.create(
             borrowing=self.borrowing2,
             money_to_pay=50,
-            type=Payment.Type.payment
+            type=Payment.Type.payment,
         )
 
     def test_non_admin_sees_only_own_payments(self):
