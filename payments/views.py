@@ -38,7 +38,7 @@ class PaymentViewSet(
 
     action_serializers = {
         "retrieve": PaymentDetailSerializer,
-        "renew": PaymentRenewSerializer
+        "renew": PaymentRenewSerializer,
     }
 
     def get_queryset(self):
@@ -108,7 +108,7 @@ class PaymentViewSet(
             return Response(
                 {
                     "detail": "There is already a pending"
-                              " payment for this borrowing"
+                    " payment for this borrowing"
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
