@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "borrowings",
     "payments",
     "user",
+    "notifications",
 ]
 
 MIDDLEWARE = [
@@ -211,12 +212,16 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_BEAT_SCHEDULE = {
     "check-overdue-borrowings-every-day": {
-        "task": "library.tasks.check_overdue_borrowings",
+        "task": "config.tasks.check_overdue_borrowings",
         "schedule": crontab(hour=9, minute=0),
     },
     "check-expired-payments-every-minute": {
         "task": "payments.tasks.check_expired_stripe_sessions",
         "schedule": crontab(minute="*"),
+    },
+    "send-overdue-summary-to-admins-daily": {
+        "task": "notifications.tasks.send_overdue_summary",
+        "schedule": crontab(hour=9, minute=10),
     },
 }
 

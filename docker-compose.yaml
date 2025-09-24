@@ -12,41 +12,51 @@ services:
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_BEAT_SCHEDULE_FILENAME: /app/celerybeat/beat.db
     depends_on:
-      redis:
-        condition: service_healthy
-      db:
-        condition: service_healthy
+      - redis
+      - db
 
   celery:
-    build: .
+    build:
+      context: .
     command: celery -A config worker -l info --concurrency=4
     env_file:
       - .env
-    environment:
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     depends_on:
-      redis:
-        condition: service_healthy
-      db:
-        condition: service_healthy
+      - redis
+      - db
+      - app
+    volumes:
+      - ./:/app
+    restart: unless-stopped
+
+  telegram_bot:
+    build:
+      context: .
+    env_file:
+      - .env
+    command: python manage.py run_telegram_bot
+    depends_on:
+      - db
+      - celery
     volumes:
       - .:/app
     restart: unless-stopped
 
   flower:
-    image: mher/flower:2.0.1
-#    restart: always
+    build:
+      context: .
+    restart: always
     ports:
       - "5555:5555"
     depends_on:
       - redis
       - celery
+      - app
     command: sh -c "celery -A config flower --broker=${CELERY_BROKER_URL} --port=5555"
     environment:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
     volumes:
-      - .:/app
+      - ./:/app
 
   db:
     image: postgres:17
@@ -57,11 +67,6 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres}" ]
-      interval: 5s
-      timeout: 3s
-      retries: 15
 
   redis:
     image: redis:8-alpine
@@ -84,12 +89,7 @@ services:
     env_file:
       - .env
     depends_on:
-      redis:
-        condition: service_healthy
-      db:
-        condition: service_healthy
-    environment:
-      REDIS_URL: redis://redis:6379/0
+      - db
     command: >
       sh -c "python manage.py wait_for_db &&
              python manage.py migrate --noinput &&
@@ -98,7 +98,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - ./:/app
 
 volumes:
   pgdata:
