@@ -1,3 +1,5 @@
+import os
+
 import stripe
 from django.conf import settings
 from django.http import HttpResponse
@@ -11,6 +13,7 @@ from rest_framework.decorators import (
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from notifications.tasks import notify_payment_success_admin_task
 from payments.models import Payment
 from payments.payment_service.stripe_service import StripePayment
 from payments.serializers import (
@@ -185,9 +188,24 @@ def stripe_webhook_view(request):
         return HttpResponse(status=400)
 
     if event["type"] == "checkout.session.completed":
-        session_id = event["data"]["object"]["id"]
+        session = event["data"]["object"]
+        session_id = session["id"]
+        currency = session.get("currency")
+
         payment = Payment.objects.get(session_id=session_id)
         payment.status = Payment.Status.paid
         payment.save()
+        try:
+            notify_payment_success_admin_task.delay(payment.id, currency)
+        except Exception:
+            pass
+
+        if os.getenv("NOTIFICATIONS_INLINE_FALLBACK") == "1":
+            try:
+                from notifications.services import notify_payment_success_admin
+
+                notify_payment_success_admin(payment.id, currency)
+            except Exception:
+                pass
 
     return HttpResponse(status=200)
