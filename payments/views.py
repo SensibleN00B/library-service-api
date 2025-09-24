@@ -13,7 +13,7 @@ from rest_framework.response import Response
 
 from payments.models import Payment
 from payments.payment_service.stripe_service import StripePayment
-from payments.serializers import PaymentDetailSerializer, PaymentListSerializer
+from payments.serializers import PaymentDetailSerializer, PaymentListSerializer, EmptySerializer
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
@@ -34,6 +34,8 @@ class PaymentViewSet(
     def get_serializer_class(self):
         if self.action == "retrieve":
             return PaymentDetailSerializer
+        if self.action == "renew":
+            return EmptySerializer
         return PaymentListSerializer
 
     def get_queryset(self):
@@ -82,20 +84,30 @@ class PaymentViewSet(
             status=status.HTTP_200_OK,
         )
 
-    @action(detail=True, methods=["POST"], url_path="renew")
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_path="renew",
+        serializer_class=EmptySerializer,
+    )
     def renew(self, request, pk=None):
         payment = self.get_object()
 
         if request.user != payment.borrowing.user:
+            return Response({"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
+
+        pending_payments = Payment.objects.filter(
+            borrowing=payment.borrowing,
+            status=Payment.Status.pending
+        )
+        if pending_payments.exists():
             return Response(
-                {"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN
+                {"detail": "There is already a pending payment for this borrowing"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if payment.status != Payment.Status.expired:
-            return Response(
-                {"detail": "Payment is not expired"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"detail": "Payment is not expired"}, status=status.HTTP_400_BAD_REQUEST)
 
         stripe_service = StripePayment()
         new_payment = stripe_service.create_payment(
@@ -110,6 +122,7 @@ class PaymentViewSet(
                 "detail": "Payment session renewed successfully",
                 "session_url": new_payment.session_url,
                 "status": new_payment.status,
+                "id": new_payment.id,
             },
             status=status.HTTP_200_OK,
         )
