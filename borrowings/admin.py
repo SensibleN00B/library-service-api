@@ -1,13 +1,15 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.urls import path, reverse
 from django.utils.html import format_html
 
+from borrowings.forms import BorrowingAdminForm
 from borrowings.models import Borrowing
 
 
 @admin.register(Borrowing)
 class BorrowingAdmin(admin.ModelAdmin):
+    form = BorrowingAdminForm
     list_display = (
         "book",
         "user",
@@ -17,6 +19,13 @@ class BorrowingAdmin(admin.ModelAdmin):
         "return_button",
     )
     readonly_fields = ("actual_return_date",)
+    list_filter = (
+        "user",
+        "book",
+        "borrow_date",
+        "expected_return_date",
+        "actual_return_date",
+    )
 
     def get_urls(self):
         urls = super().get_urls()
@@ -36,22 +45,22 @@ class BorrowingAdmin(admin.ModelAdmin):
 
     def return_button(self, obj):
         if obj.actual_return_date:
-            return " - "
+            return "Already returned!"
         url = reverse("admin:borrowing_return", args=[obj.pk])
         return format_html('<a class="button" href="{}">Return</a>', url)
 
     return_button.short_description = "Return"
 
+    def delete_model(self, request, obj):
+        if not obj.actual_return_date:
+            obj.book.inventory += 1
+            obj.book.save()
+        super().delete_model(request, obj)
+
     def save_model(self, request, obj, form, change):
         if not change:
-            if obj.book.inventory <= 0:
-                from django.core.exceptions import ValidationError
-
-                raise ValidationError("No copies available for borrowing")
-
             obj.book.inventory -= 1
             obj.book.save()
-
         super().save_model(request, obj, form, change)
 
     def get_queryset(self, request):
