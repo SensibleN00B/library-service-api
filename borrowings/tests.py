@@ -54,6 +54,14 @@ class BorrowingTest(APITestCase):
         response = self.client.post(self.url, data=payload)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_create_borrowing_fails_if_expected_date_incorrect(self):
+        self.client.force_authenticate(self.user)
+
+        payload = {"book": self.book.id, "expected_return_date": "2020-12-12"}
+
+        response = self.client.post(self.url, data=payload)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_user_sees_only_his_borrowings(self):
         self.client.force_authenticate(self.user)
 

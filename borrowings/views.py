@@ -1,4 +1,4 @@
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -26,7 +26,6 @@ from borrowings.serializers import (
 )
 from payments.models import Payment
 from payments.payment_service.stripe_service import StripePayment
-from utils.mixins import BaseViewSetMethodMixin
 
 
 @extend_schema_view(
