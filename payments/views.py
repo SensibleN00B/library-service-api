@@ -14,9 +14,9 @@ from rest_framework.response import Response
 from payments.models import Payment
 from payments.payment_service.stripe_service import StripePayment
 from payments.serializers import (
-    EmptySerializer,
     PaymentDetailSerializer,
     PaymentListSerializer,
+    PaymentRenewSerializer,
 )
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -34,13 +34,12 @@ class PaymentViewSet(
 ):
     queryset = Payment.objects.all()
     permission_classes = (IsAuthenticated,)
+    serializer_class = PaymentListSerializer
 
-    def get_serializer_class(self):
-        if self.action == "retrieve":
-            return PaymentDetailSerializer
-        if self.action == "renew":
-            return EmptySerializer
-        return PaymentListSerializer
+    action_serializers = {
+        "retrieve": PaymentDetailSerializer,
+        "renew": PaymentRenewSerializer
+    }
 
     def get_queryset(self):
         qs = self.queryset
@@ -92,7 +91,7 @@ class PaymentViewSet(
         detail=True,
         methods=["POST"],
         url_path="renew",
-        serializer_class=EmptySerializer,
+        serializer_class=PaymentRenewSerializer,
     )
     def renew(self, request, pk=None):
         payment = self.get_object()
