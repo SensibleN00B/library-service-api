@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q
 from django.utils import timezone
 
 from books.models import Book
@@ -27,6 +26,9 @@ class Borrowing(models.Model):
             raise ValidationError("Return date cannot be before borrow date.")
 
     def return_book(self) -> int:
+        if not self.payments.filter(status="paid").exists():
+            raise ValidationError("Borrowing not paid!")
+
         return_date = timezone.localtime(timezone.now()).date()
 
         self.clean_actual_return_date(return_date)

@@ -40,3 +40,7 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
             "session_url",
             "session_id",
         )
+
+
+class PaymentRenewSerializer(serializers.Serializer):
+    pass
