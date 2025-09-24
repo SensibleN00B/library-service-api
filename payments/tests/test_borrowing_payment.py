@@ -1,3 +1,4 @@
+import requests
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import status
@@ -22,6 +23,10 @@ class BorrowingFlowTests(APITestCase):
             title="Final Space", author="SomeOne", daily_fee=10, inventory=1
         )
 
+    def tearDown(self):
+        Borrowing.objects.all().delete()
+        Payment.objects.all().delete()
+
     def test_borrowing_creation_creates_pending_payment(self):
         url = reverse("borrowings:borrowing-list")
         payload = {"book": self.book.id, "expected_return_date": "2026-01-01"}
@@ -43,7 +48,10 @@ class BorrowingFlowTests(APITestCase):
             + timezone.timedelta(days=1),
         )
         Payment.objects.create(
-            borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100
+            borrowing=borrowing,
+            type=Payment.Type.payment,
+            money_to_pay=100,
+            status=Payment.Status.paid,
         )
 
         url = reverse(
@@ -57,7 +65,7 @@ class BorrowingFlowTests(APITestCase):
 
         self.assertIsNotNone(borrowing.actual_return_date)
         self.assertEqual(self.book.inventory, 2)
-        self.assertEqual(borrowing.payments.count(), 1)  # no new payments
+        self.assertEqual(borrowing.payments.count(), 1)
 
     def test_return_book_with_overdue_creates_fine_payment(self):
         borrowing = Borrowing.objects.create(
@@ -67,7 +75,10 @@ class BorrowingFlowTests(APITestCase):
             - timezone.timedelta(days=2),
         )
         Payment.objects.create(
-            borrowing=borrowing, type=Payment.Type.payment, money_to_pay=100
+            borrowing=borrowing,
+            type=Payment.Type.payment,
+            money_to_pay=100,
+            status=Payment.Status.paid,
         )
 
         url = reverse(
