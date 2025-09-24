@@ -42,5 +42,5 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
         )
 
 
-class EmptySerializer(serializers.Serializer):
+class PaymentRenewSerializer(serializers.Serializer):
     pass
