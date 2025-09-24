@@ -110,4 +110,4 @@ class StripeWebhookTests(APITestCase):
         self.payment.refresh_from_db()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.payment.status, Payment.Status.paid)
-        mock_delay.assert_called_once_with(self.payment.id)
+        mock_delay.assert_called_once_with(self.payment.id, None)

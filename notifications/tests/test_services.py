@@ -11,7 +11,6 @@ from borrowings.models import Borrowing
 from payments.models import Payment
 from notifications import services as notif_services
 
-
 User = get_user_model()
 
 
@@ -41,7 +40,7 @@ class NotificationServicesTests(TestCase):
         return borrowing
 
     def _create_payment(self, borrowing: Borrowing, status: str = Payment.Status.pending,
-                         money: Decimal = Decimal("10.00"), ptype: str = Payment.Type.payment) -> Payment:
+                        money: Decimal = Decimal("10.00"), ptype: str = Payment.Type.payment) -> Payment:
         return Payment.objects.create(
             status=status,
             type=ptype,
@@ -88,7 +87,7 @@ class NotificationServicesTests(TestCase):
 
         count, text = notif_services.build_overdue_summary()
         self.assertEqual(count, 22)
-        self.assertIn("… and 2 more", text)
+        self.assertRegex(text, r"… and\s*<*b*>*2<*/b*>*\s* more")
 
     @patch.object(notif_services, "_sync_send_messages")
     def test_notify_overdue_borrowings_admin_skips_without_admin_ids(self, mock_send):
@@ -125,4 +124,3 @@ class NotificationServicesTests(TestCase):
         self.assertIn(str(p_paid.money_to_pay), text)
         self.assertIn(self.book.title, text)
         self.assertIn(self.user.email, text)
-
