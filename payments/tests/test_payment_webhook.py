@@ -86,3 +86,28 @@ class StripeWebhookTests(APITestCase):
             HTTP_STRIPE_SIGNATURE=sig_header,
         )
         self.assertEqual(response.status_code, 400)
+
+    @patch("payments.views.notify_payment_success_admin_task.delay")
+    @patch("payments.views.stripe.Webhook.construct_event")
+    def test_webhook_enqueues_notification_task(
+        self, mock_construct_event, mock_delay
+    ):
+        mock_construct_event.return_value = {
+            "type": "checkout.session.completed",
+            "data": {"object": {"id": "sess_123"}},
+        }
+
+        payload = b"{}"
+        sig_header = "any_signature"
+
+        response = self.client.post(
+            self.url,
+            data=payload,
+            content_type="application/json",
+            HTTP_STRIPE_SIGNATURE=sig_header,
+        )
+
+        self.payment.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.payment.status, Payment.Status.paid)
+        mock_delay.assert_called_once_with(self.payment.id)
