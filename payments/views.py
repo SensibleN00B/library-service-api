@@ -1,4 +1,5 @@
 import os
+
 import stripe
 from django.conf import settings
 from django.http import HttpResponse
@@ -12,8 +13,8 @@ from rest_framework.decorators import (
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from payments.models import Payment
 from notifications.tasks import notify_payment_success_admin_task
+from payments.models import Payment
 from payments.payment_service.stripe_service import StripePayment
 from payments.serializers import (
     PaymentDetailSerializer,
@@ -202,6 +203,7 @@ def stripe_webhook_view(request):
         if os.getenv("NOTIFICATIONS_INLINE_FALLBACK") == "1":
             try:
                 from notifications.services import notify_payment_success_admin
+
                 notify_payment_success_admin(payment.id, currency)
             except Exception:
                 pass

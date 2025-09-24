@@ -14,7 +14,8 @@ class NotificationTasksTests(TestCase):
         mock_service.assert_called_once_with()
 
     @patch("notifications.tasks.notify_payment_success_admin")
-    def test_notify_payment_success_admin_task_runs_service(self, mock_service):
+    def test_notify_payment_success_admin_task_runs_service(
+        self, mock_service
+    ):
         notif_tasks.notify_payment_success_admin_task.run(42)
         mock_service.assert_called_once_with(42, None)
-

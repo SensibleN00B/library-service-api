@@ -27,9 +27,9 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Sending to {len(admin_ids)} chat(s): {', '.join(map(str, admin_ids))}"
+                f"Sending to {len(admin_ids)} "
+                f"chat(s): {', '.join(map(str, admin_ids))}"
             )
         )
         _sync_send_messages(admin_ids, text)
         self.stdout.write(self.style.SUCCESS("Done."))
-

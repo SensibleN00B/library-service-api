@@ -13,9 +13,10 @@ def send_overdue_summary() -> int:
 
 
 @shared_task
-def notify_payment_success_admin_task(payment_id: int, currency: str | None = None) -> None:
+def notify_payment_success_admin_task(
+    payment_id: int, currency: str | None = None
+) -> None:
     """Enqueue admin notification when a payment is marked as paid.
     Runs aiogram Bot sending inside Celery.
     """
     notify_payment_success_admin(payment_id, currency)
-

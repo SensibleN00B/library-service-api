@@ -29,30 +29,39 @@ def _get_admin_chat_ids() -> List[int]:
         try:
             ids.append(int(part))
         except ValueError:
-            # skip invalid entries silently
             continue
     return ids
 
 
 def _build_bot():
-    from aiogram import Bot  # local import to avoid hard dependency at import-time
+    from aiogram import (
+        Bot,
+    )
+
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     if not token:
-        raise RuntimeError(
-            "TELEGRAM_BOT_TOKEN is not set in environment"
-        )
+        raise RuntimeError("TELEGRAM_BOT_TOKEN is not set in environment")
     return Bot(token=token)
 
 
-def _sync_send_messages(chat_ids: Iterable[int], text: str, *, parse_mode: str | None = "HTML") -> None:
+def _sync_send_messages(
+    chat_ids: Iterable[int], text: str, *, parse_mode: str | None = "HTML"
+) -> None:
     async def _send():
         bot = _build_bot()
         try:
             for chat_id in chat_ids:
                 try:
-                    await bot.send_message(chat_id, text, parse_mode=parse_mode, disable_web_page_preview=True)
+                    await bot.send_message(
+                        chat_id,
+                        text,
+                        parse_mode=parse_mode,
+                        disable_web_page_preview=True,
+                    )
                 except Exception as e:
-                    logger.warning("Telegram send failed for chat %s: %r", chat_id, e)
+                    logger.warning(
+                        "Telegram send failed for chat %s: %r", chat_id, e
+                    )
                     continue
         finally:
             await bot.session.close()
@@ -69,7 +78,9 @@ def _fmt_money(amount: Decimal, currency: str | None) -> str:
     return f"{sign}{amount:.2f} {code}"
 
 
-def notify_payment_success_admin(payment_id: int, currency: str | None = None) -> None:
+def notify_payment_success_admin(
+    payment_id: int, currency: str | None = None
+) -> None:
     payment = Payment.objects.select_related(
         "borrowing", "borrowing__book", "borrowing__user"
     ).get(id=payment_id)
@@ -77,7 +88,9 @@ def notify_payment_success_admin(payment_id: int, currency: str | None = None) -
     if payment.status != Payment.Status.paid:
         return
 
-    user_label = getattr(payment.borrowing.user, "email", payment.borrowing.user_id)
+    user_label = getattr(
+        payment.borrowing.user, "email", payment.borrowing.user_id
+    )
     amount_str = _fmt_money(payment.money_to_pay, currency)
 
     text = (
@@ -95,7 +108,8 @@ def notify_payment_success_admin(payment_id: int, currency: str | None = None) -
         _sync_send_messages(admin_ids, text)
     else:
         logger.info(
-            "No admin chat IDs configured; skipping payment notification for id=%s",
+            "No admin chat IDs configured; "
+            "skipping payment notification for id=%s",
             payment_id,
         )
 
@@ -107,8 +121,7 @@ def build_overdue_summary() -> Tuple[int, str]:
     """
     today = now().date()
     overdue = Borrowing.objects.select_related("book", "user").filter(
-        expected_return_date__lt=today,
-        actual_return_date__isnull=True
+        expected_return_date__lt=today, actual_return_date__isnull=True
     )
     count = overdue.count()
 

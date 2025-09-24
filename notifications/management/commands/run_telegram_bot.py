@@ -9,4 +9,3 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS("Starting Telegram bot…"))
         run()
-

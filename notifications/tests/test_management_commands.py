@@ -6,8 +6,13 @@ from django.test import TestCase
 
 
 class NotifyAdminsCommandTests(TestCase):
-    @patch("notifications.management.commands.notify_admins._sync_send_messages")
-    @patch("notifications.management.commands.notify_admins._get_admin_chat_ids", return_value=[])
+    @patch(
+        "notifications.management.commands.notify_admins._sync_send_messages"
+    )
+    @patch(
+        "notifications.management.commands.notify_admins._get_admin_chat_ids",
+        return_value=[],
+    )
     def test_notify_admins_no_ids(self, mock_ids, mock_send):
         out = StringIO()
         call_command("notify_admins", stdout=out)
@@ -16,8 +21,13 @@ class NotifyAdminsCommandTests(TestCase):
         self.assertIn("No TELEGRAM_ADMINS_CHAT_IDS configured", output)
         mock_send.assert_not_called()
 
-    @patch("notifications.management.commands.notify_admins._sync_send_messages")
-    @patch("notifications.management.commands.notify_admins._get_admin_chat_ids", return_value=[1, 2])
+    @patch(
+        "notifications.management.commands.notify_admins._sync_send_messages"
+    )
+    @patch(
+        "notifications.management.commands.notify_admins._get_admin_chat_ids",
+        return_value=[1, 2],
+    )
     def test_notify_admins_sends_when_ids_present(self, mock_ids, mock_send):
         out = StringIO()
         call_command("notify_admins", "Hello admins", stdout=out)
@@ -37,4 +47,3 @@ class RunTelegramBotCommandTests(TestCase):
 
         self.assertIn("Starting Telegram bot", output)
         mock_run.assert_called_once_with()
-
