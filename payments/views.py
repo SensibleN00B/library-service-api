@@ -13,7 +13,11 @@ from rest_framework.response import Response
 
 from payments.models import Payment
 from payments.payment_service.stripe_service import StripePayment
-from payments.serializers import PaymentDetailSerializer, PaymentListSerializer, EmptySerializer
+from payments.serializers import (
+    EmptySerializer,
+    PaymentDetailSerializer,
+    PaymentListSerializer,
+)
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
@@ -94,20 +98,27 @@ class PaymentViewSet(
         payment = self.get_object()
 
         if request.user != payment.borrowing.user:
-            return Response({"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN
+            )
 
         pending_payments = Payment.objects.filter(
-            borrowing=payment.borrowing,
-            status=Payment.Status.pending
+            borrowing=payment.borrowing, status=Payment.Status.pending
         )
         if pending_payments.exists():
             return Response(
-                {"detail": "There is already a pending payment for this borrowing"},
+                {
+                    "detail": "There is already a pending"
+                              " payment for this borrowing"
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if payment.status != Payment.Status.expired:
-            return Response({"detail": "Payment is not expired"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Payment is not expired"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         stripe_service = StripePayment()
         new_payment = stripe_service.create_payment(

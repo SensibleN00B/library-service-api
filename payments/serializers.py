@@ -41,5 +41,6 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
             "session_id",
         )
 
+
 class EmptySerializer(serializers.Serializer):
     pass
